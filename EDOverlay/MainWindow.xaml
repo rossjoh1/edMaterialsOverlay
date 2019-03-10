@@ -1,0 +1,30 @@
+﻿<Window x:Class="EDOverlay.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:EDOverlay"
+        mc:Ignorable="d"
+        Title="MainWindow" WindowStyle="None" AllowsTransparency="True" BorderThickness=".5" Topmost="True" WindowStartupLocation="CenterScreen" OpacityMask="Black" SizeToContent="WidthAndHeight" BorderBrush="#FF291B6A">
+    <Window.Background>
+        <SolidColorBrush Opacity="0.3" Color="Black" />
+    </Window.Background>
+    <Grid MouseLeftButtonDown="InterfaceItem_MakeDraggable">
+        <StackPanel>
+            <Button x:Name="ExitButton" Click="ExitButton_Click" Background="Transparent" Foreground="LightSkyBlue">Close</Button>
+            <ProgressBar x:Name="eventProgressBar" Background="Transparent" BorderThickness="0" />
+            <ListView x:Name="DiscoveryOutputListView" ItemsSource="{Binding}" Background="Transparent" BorderThickness="0">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal" Width="auto">
+                            <TextBlock Text="{Binding Path=Key}" Width="80" MouseLeftButtonDown="InterfaceItem_MakeDraggable" Foreground="#FFF6FF35" FontWeight="Bold" />
+                            <TextBlock Text="{Binding Value.Percent}" Width="40" MouseLeftButtonDown="InterfaceItem_MakeDraggable" FontWeight="Bold" Foreground="#FF51C5FB" />
+                            <TextBlock Text="{Binding Value.BodyName}" FontWeight="Bold" Foreground="#FFBB721A" />
+                        </StackPanel>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+            <TextBlock x:Name="CurrentEventText" Height="auto" Width="300" Text="Welcome to SurfaceMatTracker!" Foreground="#FFF6FF35" Background="Transparent" TextWrapping="Wrap"/>
+        </StackPanel>
+    </Grid>
+</Window>
