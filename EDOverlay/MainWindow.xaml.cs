@@ -26,8 +26,8 @@ namespace EDOverlay
     {
         // not sure if this path can be changed by config/install.  mine is here
         private string _edJournalPath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), @"Saved Games\Frontier Developments\Elite Dangerous");
-
         private Dictionary<string, HighestConcentationLocation> _highestConcentrations = new Dictionary<string, HighestConcentationLocation>();
+        private MediaPlayer _player = new MediaPlayer();
 
         public MainWindow()
         {
@@ -107,7 +107,13 @@ namespace EDOverlay
 
         private void ProcessEntry(string journalEntry)
         {
-            if (journalEntry.Contains("\"Landable\":true"))
+            if (journalEntry.Contains("Terraformable"))
+            {
+                _player.Open(new Uri($"{Environment.CurrentDirectory}/sounds/terraform.wav"));
+                _player.Play();
+                CurrentEventText.Text = $"Terraformable found: {JObject.Parse(journalEntry)["BodyName"]}";
+            }
+            else if (journalEntry.Contains("\"Landable\":true"))
             {
                 foreach (var find in ProcessMaterials(journalEntry))
                 {
