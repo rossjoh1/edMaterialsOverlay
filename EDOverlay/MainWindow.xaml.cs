@@ -54,7 +54,7 @@ namespace EDOverlay
                         ProcessMaterials(line);
                     }
                 }
-                catch(Exception)
+                catch(Exception ex)
                 {
                     // couldn't get the file. must have been busy.  move on
                 }
@@ -107,16 +107,19 @@ namespace EDOverlay
 
         private void ProcessEntry(string journalEntry)
         {
-            if (journalEntry.Contains("Terraformable"))
+            if (journalEntry.Contains("\"event\":\"Scan\"") && journalEntry.Contains("Terraformable"))
             {
                 _player.Open(new Uri($"{Environment.CurrentDirectory}/sounds/terraform.wav"));
                 _player.Play();
                 CurrentEventText.Text = $"Terraformable found: {JObject.Parse(journalEntry)["BodyName"]}";
             }
-            else if (journalEntry.Contains("\"Landable\":true"))
+            else if (journalEntry.Contains("\"event\":\"Scan\"") && journalEntry.Contains("\"Landable\":true"))
             {
                 foreach (var find in ProcessMaterials(journalEntry))
                 {
+                    _player.Open(new Uri($"{Environment.CurrentDirectory}/sounds/256543__debsound__r2d2-astro-droid.wav"));
+                    _player.Play();
+                    //CurrentEventText.Text = $"New high concentration found for {material.Name} on {bodyName}!";
                     CurrentEventText.Text = find;
                 }
             }
@@ -181,6 +184,35 @@ namespace EDOverlay
         {
             Close();
         }
+
+        public Dictionary<string, Rarity> MaterialRarity = new Dictionary<string, Rarity>
+        {
+            {"Carbon", Rarity.VeryCommon },
+            {"Iron", Rarity.VeryCommon },
+            {"Nickel", Rarity.VeryCommon },
+            {"Phosphorus", Rarity.VeryCommon },
+            {"Sulphur", Rarity.VeryCommon },
+            {"Arsenic", Rarity.Common },
+            {"Chromium", Rarity.Common },
+            {"Germanium", Rarity.Common },
+            {"Manganese", Rarity.Common },
+            {"Vanadium", Rarity.Common },
+            {"Zinc", Rarity.Common },
+            {"Zirconium", Rarity.Common },
+            {"Cadmium", Rarity.Uncommon },
+            {"Mercury", Rarity.Uncommon },
+            {"Molybdenum", Rarity.Uncommon },
+            {"Niobium", Rarity.Uncommon },
+            {"Tin", Rarity.Uncommon },
+            {"Tungsten", Rarity.Uncommon },
+            {"Antimony", Rarity.Rare },
+            {"Polonium", Rarity.Rare },
+            {"Ruthenium", Rarity.Rare },
+            {"Selenium", Rarity.Rare },
+            {"Technetium", Rarity.Rare },
+            {"Tellurium", Rarity.Rare },
+            {"Yttrium", Rarity.Rare }
+        };
     }
 
     public class MaterialConcentration
@@ -197,4 +229,12 @@ namespace EDOverlay
         public string BodyName { get; set; }
     }
 
+    public enum Rarity
+    {
+        VeryCommon,
+        Common,
+        Uncommon,
+        Rare,
+        VeryRare
+    };
 }
