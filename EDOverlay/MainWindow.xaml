@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:EDOverlay"
         mc:Ignorable="d"
-        Title="MainWindow" WindowStyle="None" AllowsTransparency="True" BorderThickness=".5" Topmost="True" WindowStartupLocation="CenterScreen" OpacityMask="Black" SizeToContent="WidthAndHeight" BorderBrush="#FF291B6A" ResizeMode="CanResizeWithGrip">
+        Title="MainWindow" WindowStyle="None" AllowsTransparency="True" BorderThickness=".5" Topmost="True" WindowStartupLocation="CenterScreen" OpacityMask="Black" BorderBrush="#FF291B6A" SizeToContent="Height" Width="340" ResizeMode="CanResizeWithGrip">
     <Window.Background>
         <SolidColorBrush Opacity="0.3" Color="Black" />
     </Window.Background>
@@ -47,7 +47,7 @@
                 </ListBox.Template>
             </ListBox>
             <Line StrokeThickness="10" Height="5" Width="auto" OverridesDefaultStyle="True"></Line>
-            <TextBlock x:Name="CurrentEventText" Height="auto" Width="auto" Text="Welcome to SurfaceMatTracker!" Foreground="#FFF6FF35" Background="Transparent" TextWrapping="Wrap"/>
+            <TextBlock x:Name="CurrentEventText" Height="auto" Width="320"  Text="Welcome to SurfaceMatTracker!" Foreground="#FFF6FF35" Background="Transparent" TextWrapping="Wrap"/>
         </StackPanel>
     </Grid>
 </Window>
