@@ -5,26 +5,49 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:EDOverlay"
         mc:Ignorable="d"
-        Title="MainWindow" WindowStyle="None" AllowsTransparency="True" BorderThickness=".5" Topmost="True" WindowStartupLocation="CenterScreen" OpacityMask="Black" SizeToContent="WidthAndHeight" BorderBrush="#FF291B6A">
+        Title="MainWindow" WindowStyle="None" AllowsTransparency="True" BorderThickness=".5" Topmost="True" WindowStartupLocation="CenterScreen" OpacityMask="Black" SizeToContent="WidthAndHeight" BorderBrush="#FF291B6A" ResizeMode="CanResizeWithGrip">
     <Window.Background>
         <SolidColorBrush Opacity="0.3" Color="Black" />
     </Window.Background>
+    <Window.Resources>
+        <local:ListToStringConverter x:Key="ListToStringConverter" />
+    </Window.Resources>    
     <Grid MouseLeftButtonDown="InterfaceItem_MakeDraggable">
-        <StackPanel>
+        <StackPanel Orientation="Vertical">
             <Button x:Name="ExitButton" Click="ExitButton_Click" Background="Transparent" Foreground="LightSkyBlue">Close</Button>
             <ProgressBar x:Name="eventProgressBar" Background="Transparent" BorderThickness="0" />
-            <ListView x:Name="DiscoveryOutputListView" ItemsSource="{Binding}" Background="Transparent" BorderThickness="0">
+            <ListView x:Name="DiscoveryOutputListView" ItemsSource="{Binding}" Background="Transparent" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                <ListView.ItemContainerStyle>
+                    <Style TargetType="ListViewItem">
+                        <EventSetter Event="PreviewMouseLeftButtonDown" Handler="InterfaceItem_MakeDraggable" />
+                    </Style>
+                </ListView.ItemContainerStyle>
                 <ListView.ItemTemplate>
                     <DataTemplate>
                         <StackPanel Orientation="Horizontal" Width="auto">
-                            <TextBlock Text="{Binding Path=Key}" Width="80" MouseLeftButtonDown="InterfaceItem_MakeDraggable" Foreground="#FFF6FF35" FontWeight="Bold" />
-                            <TextBlock Text="{Binding Value.Percent}" Width="40" MouseLeftButtonDown="InterfaceItem_MakeDraggable" FontWeight="Bold" Foreground="#FF51C5FB" />
+                            <TextBlock Text="{Binding Path=Key}" Width="80"  Foreground="#FFF6FF35" FontWeight="Bold" />
+                            <TextBlock Text="{Binding Value.Percent}" Width="40" FontWeight="Bold" Foreground="#FF51C5FB" />
                             <TextBlock Text="{Binding Value.BodyName}" FontWeight="Bold" Foreground="#FFBB721A" />
                         </StackPanel>
                     </DataTemplate>
                 </ListView.ItemTemplate>
             </ListView>
-            <TextBlock x:Name="CurrentEventText" Height="auto" Width="300" Text="Welcome to SurfaceMatTracker!" Foreground="#FFF6FF35" Background="Transparent" TextWrapping="Wrap"/>
+            <TextBlock x:Name="POIText" Height="auto" Width="auto" Foreground="#FFF6FF35" />
+            <!-- Text="{Binding Source=SystemPoiList, Converter={StaticResource ListToStringConverter}}" -->
+            <ListBox x:Name="POIListBox" Height="auto" Width="auto" Foreground="#FF2BD810" Background="#FF1D4B18" ItemsSource="{Binding}" BorderThickness="0">
+                <ListBox.Template>
+                    <ControlTemplate>
+                        <DockPanel LastChildFill="True">
+                            <Grid DockPanel.Dock="Top">
+                                <TextBlock Grid.Column="0" Text="{Binding Path=Count, StringFormat='Terraformables: {0}'}"></TextBlock>
+                            </Grid>
+                            <ItemsPresenter></ItemsPresenter>
+                        </DockPanel>
+                    </ControlTemplate>
+                </ListBox.Template>
+            </ListBox>
+            <Line StrokeThickness="10" Height="5" Width="auto" OverridesDefaultStyle="True"></Line>
+            <TextBlock x:Name="CurrentEventText" Height="auto" Width="auto" Text="Welcome to SurfaceMatTracker!" Foreground="#FFF6FF35" Background="Transparent" TextWrapping="Wrap"/>
         </StackPanel>
     </Grid>
 </Window>

@@ -16,6 +16,8 @@ using System.IO;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Globalization;
+using System.Windows.Markup;
+using System.Collections.ObjectModel;
 
 namespace EDOverlay
 {
@@ -28,6 +30,9 @@ namespace EDOverlay
         private string _edJournalPath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), @"Saved Games\Frontier Developments\Elite Dangerous");
         private Dictionary<string, HighestConcentationLocation> _highestConcentrations = new Dictionary<string, HighestConcentationLocation>();
         private MediaPlayer _player = new MediaPlayer();
+        private string _systemName;
+
+        public ObservableCollection<string> SystemPoiList = new ObservableCollection<string>();
 
         public MainWindow()
         {
@@ -36,6 +41,7 @@ namespace EDOverlay
             InitializeComponent();
 
             DiscoveryOutputListView.DataContext = _highestConcentrations.OrderBy(entry => entry.Key);
+            POIListBox.DataContext = SystemPoiList;
             //Dispatcher.Invoke( () => MakeProgress() )
 
             WatchJournalForChanges();
@@ -95,7 +101,7 @@ namespace EDOverlay
                         while ((line = reader.ReadLine()) != null)
                         {
                             // a new event came in
-                            Dispatcher.Invoke(() => ProcessEntry(line));
+                            Dispatcher.Invoke(() => ProcessLiveEntry(line));
                         }
 
                         //update the last max offset
@@ -105,27 +111,46 @@ namespace EDOverlay
             });
         }
 
-        private void ProcessEntry(string journalEntry)
+        private void ProcessLiveEntry(string journalEntry)
         {
-            if (journalEntry.Contains("\"event\":\"Scan\"") && journalEntry.Contains("Terraformable"))
+            if (journalEntry.Contains("\"event\":\"FSDJump\""))
             {
-                _player.Open(new Uri($"{Environment.CurrentDirectory}/sounds/terraform.wav"));
-                _player.Play();
-                CurrentEventText.Text = $"Terraformable found: {JObject.Parse(journalEntry)["BodyName"]}";
+                _systemName = JObject.Parse(journalEntry)["StarSystem"].ToString();
+            }
+            else if (journalEntry.Contains("\"event\":\"Scan\"") && journalEntry.Contains("Terraformable"))
+            {
+                AddTerraformablePoi(journalEntry);
             }
             else if (journalEntry.Contains("\"event\":\"Scan\"") && journalEntry.Contains("\"Landable\":true"))
             {
                 foreach (var find in ProcessMaterials(journalEntry))
                 {
-                    _player.Open(new Uri($"{Environment.CurrentDirectory}/sounds/256543__debsound__r2d2-astro-droid.wav"));
-                    _player.Play();
+                    PlayNewHighConcentationFound();
                     //CurrentEventText.Text = $"New high concentration found for {material.Name} on {bodyName}!";
-                    CurrentEventText.Text = find;
+                    POIText.Text = find;
                 }
+            }
+            else if (journalEntry.Contains("\"event\":\"Shutdown\""))
+            {
+                Application.Current.Shutdown();
             }
             else
             {
                 CurrentEventText.Text = journalEntry;
+            }
+        }
+
+        private void AddTerraformablePoi(string journalEntry)
+        {
+            string bodyName = JObject.Parse(journalEntry)["BodyName"].ToString().Replace(_systemName ?? "NOSYSTEM", string.Empty);
+            int distance = Convert.ToInt32(JObject.Parse(journalEntry)["DistanceFromArrivalLS"]);
+
+            if (!SystemPoiList.Any(item => item.Equals($"Planet: {bodyName} at {distance}ls")))
+            {
+                PlayTerraformFound();
+
+                SystemPoiList.Add($"Planet: {bodyName} at {distance}ls");
+                CurrentEventText.Text = $"Terraformable found: {JObject.Parse(journalEntry)["BodyName"]}";
             }
         }
 
@@ -185,6 +210,18 @@ namespace EDOverlay
             Close();
         }
 
+        private void PlayTerraformFound()
+        {
+            _player.Open(new Uri($"{Environment.CurrentDirectory}/sounds/terraform.wav"));
+            _player.Play();
+        }
+
+        private void PlayNewHighConcentationFound()
+        {
+            _player.Open(new Uri($"{Environment.CurrentDirectory}/sounds/256543__debsound__r2d2-astro-droid.wav"));
+            _player.Play();
+        }
+
         public Dictionary<string, Rarity> MaterialRarity = new Dictionary<string, Rarity>
         {
             {"Carbon", Rarity.VeryCommon },
@@ -237,4 +274,32 @@ namespace EDOverlay
         Rare,
         VeryRare
     };
+
+
+    #region UI Concerns
+    public abstract class BaseConverter : MarkupExtension
+    {
+        public override object ProvideValue(IServiceProvider serviceProvider)
+        {
+            return this;
+        }
+    }
+
+    [ValueConversion(typeof(ObservableCollection<string>), typeof(string))]
+    public class ListToStringConverter : BaseConverter, IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+        {
+            if (targetType != typeof(string))
+                throw new InvalidOperationException("The target must be a String");
+
+            return String.Join(Environment.NewLine, ((ObservableCollection<string>)value).ToArray());
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+    #endregion
 }
