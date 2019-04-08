@@ -210,6 +210,26 @@ namespace EDOverlay
             Close();
         }
 
+        private void VeryCommonButton_Click(object sender, EventArgs e)
+        {
+            
+        }
+        
+        private void CommonButton_Click(object sender, EventArgs e)
+        {
+            
+        }
+
+        private void UncommonButton_Click(object sender, EventArgs e)
+        {
+            
+        }
+
+        private void RareButton_Click(object sender, EventArgs e)
+        {
+            
+        }
+
         private void PlayTerraformFound()
         {
             _player.Open(new Uri($"{Environment.CurrentDirectory}/sounds/terraform.wav"));
