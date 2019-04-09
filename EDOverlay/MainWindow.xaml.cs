@@ -32,7 +32,7 @@ namespace EDOverlay
         private MediaPlayer _player = new MediaPlayer();
         private string _systemName;
 
-        public ObservableCollection<string> SystemPoiList = new ObservableCollection<string>();
+        public ObservableCollection<SystemPoi> SystemPoiList = new ObservableCollection<SystemPoi>();
 
         public MainWindow()
         {
@@ -113,14 +113,20 @@ namespace EDOverlay
 
         private void ProcessLiveEntry(string journalEntry)
         {
+            // Jump to new system
             if (journalEntry.Contains("\"event\":\"FSDJump\""))
             {
                 _systemName = JObject.Parse(journalEntry)["StarSystem"].ToString();
+                SystemPoiList.Clear();
             }
+
+            // Terraformable found
             else if (journalEntry.Contains("\"event\":\"Scan\"") && journalEntry.Contains("Terraformable"))
             {
                 AddTerraformablePoi(journalEntry);
             }
+
+            // Landable (materials) found
             else if (journalEntry.Contains("\"event\":\"Scan\"") && journalEntry.Contains("\"Landable\":true"))
             {
                 foreach (var find in ProcessMaterials(journalEntry))
@@ -130,6 +136,18 @@ namespace EDOverlay
                     POIText.Text = find;
                 }
             }
+
+            // Surface Scan Complete
+            else if (journalEntry.Contains("\"event\":\"SAAScanComplete\""))
+            {
+                int scannedBodyId = (int)JObject.Parse(journalEntry)["BodyID"];
+                var scannedBody = SystemPoiList.FirstOrDefault(poi => poi.BodyID == scannedBodyId);
+
+                if (scannedBody != null)
+                    scannedBody.SurfaceScanned = true;
+            }
+
+            // ED closed
             else if (journalEntry.Contains("\"event\":\"Shutdown\""))
             {
                 Application.Current.Shutdown();
@@ -142,14 +160,22 @@ namespace EDOverlay
 
         private void AddTerraformablePoi(string journalEntry)
         {
+            int scannedBodyId = (int)JObject.Parse(journalEntry)["BodyID"];
             string bodyName = JObject.Parse(journalEntry)["BodyName"].ToString().Replace(_systemName ?? "NOSYSTEM", string.Empty);
             int distance = Convert.ToInt32(JObject.Parse(journalEntry)["DistanceFromArrivalLS"]);
 
-            if (!SystemPoiList.Any(item => item.Equals($"Planet: {bodyName} at {distance}ls")))
+            if (!SystemPoiList.Any(item => item.BodyID == scannedBodyId))
             {
                 PlayTerraformFound();
 
-                SystemPoiList.Add($"Planet: {bodyName} at {distance}ls");
+                SystemPoiList.Add(new SystemPoi() {
+                    BodyID=scannedBodyId,
+                    PlanetClass = PlanetClass.AmmoniaWorld,
+                    BodyName = bodyName,
+                    IsTerraformable = true,
+                    SurfaceScanned = false,
+                    DistanceFromEntry = distance });
+
                 CurrentEventText.Text = $"Terraformable found: {JObject.Parse(journalEntry)["BodyName"]}";
             }
         }
@@ -222,6 +248,25 @@ namespace EDOverlay
             _player.Play();
         }
 
+        private PlanetClass MapPlanetClass(string edPlanetClass)
+        {
+            switch (edPlanetClass)
+            {
+                case "Icy body":
+                    return PlanetClass.Icy;
+                case "High metal content body":
+                    return PlanetClass.HighMetalContent;
+                case "Water world":
+                    return PlanetClass.WaterWorld;
+                case "Ammonia world":
+                    return PlanetClass.AmmoniaWorld;
+                case "Earthlike world":
+                    return PlanetClass.EarthLike;
+                default:
+                    return PlanetClass.Icy;
+            }
+        }
+
         public Dictionary<string, Rarity> MaterialRarity = new Dictionary<string, Rarity>
         {
             {"Carbon", Rarity.VeryCommon },
@@ -265,6 +310,25 @@ namespace EDOverlay
         public decimal Percent { get; set; }
         public string BodyName { get; set; }
     }
+
+    public class SystemPoi
+    {
+        public int BodyID { get; set; }
+        public PlanetClass PlanetClass { get; set; }
+        public string BodyName { get; set; }
+        public bool IsTerraformable { get; set; }
+        public int DistanceFromEntry { get; set; }
+        public bool SurfaceScanned { get; set; }
+    }
+
+    public enum PlanetClass
+    {
+        Icy,
+        HighMetalContent,
+        EarthLike,
+        WaterWorld,
+        AmmoniaWorld
+    };
 
     public enum Rarity
     {

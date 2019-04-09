@@ -45,6 +45,18 @@
                         </DockPanel>
                     </ControlTemplate>
                 </ListBox.Template>
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock>
+                            <TextBlock.Text>
+                                <MultiBinding StringFormat="Planet: {0} at {1} ls from entry">
+                                    <Binding Path="BodyName" />
+                                    <Binding Path="DistanceFromEntry" />
+                                </MultiBinding>
+                            </TextBlock.Text>
+                        </TextBlock>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
             </ListBox>
             <Line StrokeThickness="10" Height="5" Width="auto" OverridesDefaultStyle="True"></Line>
             <TextBlock x:Name="CurrentEventText" Height="auto" Width="320"  Text="Welcome to SurfaceMatTracker!" Foreground="#FFF6FF35" Background="Transparent" TextWrapping="Wrap"/>
