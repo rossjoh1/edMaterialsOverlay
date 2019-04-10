@@ -239,6 +239,7 @@ namespace EDOverlay
         private void VeryCommonButton_Click(object sender, EventArgs e)
         {
             
+
         }
         
         private void CommonButton_Click(object sender, EventArgs e)
@@ -256,11 +257,31 @@ namespace EDOverlay
             
         }
 
+        // TODO: Refactor all these audio methods into one method
         private void PlayTerraformFound()
         {
             _player.Open(new Uri($"{Environment.CurrentDirectory}/sounds/terraform.wav"));
             _player.Play();
         }
+
+        private void PlayEarthLikeFound()
+        {
+            _player.Open(new Uri($"{Environment.CurrentDirectory}/sounds/earthlikeworld.wav"));
+            _player.Play();
+        }
+
+        private void PlayWaterWorldFound()
+        {
+            _player.Open(new Uri($"{Environment.CurrentDirectory}/sounds/waterworld.wav"));
+            _player.Play();
+        }
+
+        private void PlayAmmoniaWorldFound()
+        {
+            _player.Open(new Uri($"{Environment.CurrentDirectory}/sounds/ammoniaworld.wav"));
+            _player.Play();
+        }
+
 
         private void PlayNewHighConcentationFound()
         {
