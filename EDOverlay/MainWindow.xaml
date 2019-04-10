@@ -14,24 +14,22 @@
     </Window.Resources>    
     <Grid MouseLeftButtonDown="InterfaceItem_MakeDraggable">
         <StackPanel Orientation="Vertical">
-          <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-            <Button x:Name="ExitButton" Width="20" Height="20" Margin="5" Click="ExitButton_Click" Background="Black">
-              <Image Source="images\exitbutton.png"></Image>
-            </Button>
-          </StackPanel>
-          <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">            
-            <Button x:Name="VeryCommonButton" Width="35" Height="35" Margin="5" Click="VeryCommonButton_Click" Background="Black">
+          <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">                         
+            <Button x:Name="VeryCommonButton" Width="25" Height="25" Margin="5" Click="VeryCommonButton_Click" Background="Black">
               <Image Source="images\matgrade0.png"></Image>
             </Button>
-            <Button x:Name="CommonButton" Width="35" Height="35" Margin="5" Click="CommonButton_Click" Background="Black">
+            <Button x:Name="CommonButton" Width="25" Height="25" Margin="5" Click="CommonButton_Click" Background="Black">
               <Image Source="images\matgrade1.png"></Image>
             </Button>
-            <Button x:Name="UncommonButton" Width="35" Height="35" Margin="5" Click="UncommonButton_Click" Background="Black">
+            <Button x:Name="UncommonButton" Width="25" Height="25" Margin="5" Click="UncommonButton_Click" Background="Black">
               <Image Source="images\matgrade2.png"></Image>
             </Button>
-            <Button x:Name="RareButton" Width="35" Height="35" Margin="5" Click="RareButton_Click" Background="Black">
+            <Button x:Name="RareButton" Width="25" Height="25" Margin="5" Click="RareButton_Click" Background="Black">
               <Image Source="images\matgrade3.png"></Image>
-            </Button>            
+            </Button>
+            <Button x:Name="ExitButton" Width="25" Height="25" Margin="30 5 5 5" Click="ExitButton_Click" Background="Black">
+              <Image Source="images\exitbutton.png"></Image>
+            </Button>
           </StackPanel>
             <ProgressBar x:Name="eventProgressBar" Background="Transparent" BorderThickness="0" />
             <ListView x:Name="DiscoveryOutputListView" ItemsSource="{Binding}" Background="Transparent" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
