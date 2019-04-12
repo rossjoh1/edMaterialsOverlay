@@ -15,19 +15,19 @@
     <Grid MouseLeftButtonDown="InterfaceItem_MakeDraggable">
         <StackPanel Orientation="Vertical">
           <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">                         
-            <Button x:Name="VeryCommonButton" Width="25" Height="25" Margin="5" Click="VeryCommonButton_Click" Background="Black">
+            <Button x:Name="VeryCommonButton" Width="25" Height="25" Margin="5" Click="VeryCommonButton_Click" Background="Transparent" BorderThickness="0" Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}">
               <Image Source="images\matgrade0.png"></Image>
             </Button>
-            <Button x:Name="CommonButton" Width="25" Height="25" Margin="5" Click="CommonButton_Click" Background="Black">
+            <Button x:Name="CommonButton" Width="25" Height="25" Margin="5" Click="CommonButton_Click" Background="Transparent" BorderThickness="0" Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}">
               <Image Source="images\matgrade1.png"></Image>
             </Button>
-            <Button x:Name="UncommonButton" Width="25" Height="25" Margin="5" Click="UncommonButton_Click" Background="Black">
+            <Button x:Name="UncommonButton" Width="25" Height="25" Margin="5" Click="UncommonButton_Click" Background="Transparent" BorderThickness="0" Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}"">
               <Image Source="images\matgrade2.png"></Image>
             </Button>
-            <Button x:Name="RareButton" Width="25" Height="25" Margin="5" Click="RareButton_Click" Background="Black">
+            <Button x:Name="RareButton" Width="25" Height="25" Margin="5" Click="RareButton_Click" Background="Transparent" BorderThickness="0" Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}">
               <Image Source="images\matgrade3.png"></Image>
             </Button>
-            <Button x:Name="ExitButton" Width="25" Height="25" Margin="30 5 5 5" Click="ExitButton_Click" Background="Black">
+            <Button x:Name="ExitButton" Width="25" Height="25" Margin="30 5 5 5" Click="ExitButton_Click" Background="Transparent" BorderThickness="0" Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}">
               <Image Source="images\exitbutton.png"></Image>
             </Button>
           </StackPanel>

@@ -257,6 +257,13 @@ namespace EDOverlay
             
         }
 
+        private void CopySystem_Click(object sender, EventArgs e)
+        {
+            var textblock = (sender as TextBlock).Text;
+            
+            Clipboard.SetText(textblock.ToString());
+        }
+
         // TODO: Refactor all these audio methods into one method
         private void PlayTerraformFound()
         {
@@ -281,7 +288,6 @@ namespace EDOverlay
             _player.Open(new Uri($"{Environment.CurrentDirectory}/sounds/ammoniaworld.wav"));
             _player.Play();
         }
-
 
         private void PlayNewHighConcentationFound()
         {
