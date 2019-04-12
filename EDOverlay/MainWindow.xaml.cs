@@ -120,10 +120,10 @@ namespace EDOverlay
                 SystemPoiList.Clear();
             }
 
-            // Terraformable found
-            else if (journalEntry.Contains("\"event\":\"Scan\"") && journalEntry.Contains("Terraformable"))
+            // Scanned a planet
+            else if (journalEntry.Contains("\"event\":\"Scan\""))
             {
-                AddTerraformablePoi(journalEntry);
+                ProcessScannedBody(journalEntry);
             }
 
             // Landable (materials) found
@@ -158,25 +158,36 @@ namespace EDOverlay
             }
         }
 
-        private void AddTerraformablePoi(string journalEntry)
+        private void ProcessScannedBody(string journalEntry)
         {
-            int scannedBodyId = (int)JObject.Parse(journalEntry)["BodyID"];
-            string bodyName = JObject.Parse(journalEntry)["BodyName"].ToString().Replace(_systemName ?? "NOSYSTEM", string.Empty);
+            int bodyId = (int)JObject.Parse(journalEntry)["BodyID"];
             int distance = Convert.ToInt32(JObject.Parse(journalEntry)["DistanceFromArrivalLS"]);
 
-            if (!SystemPoiList.Any(item => item.BodyID == scannedBodyId))
+            string bodyName = JObject.Parse(journalEntry)["BodyName"].ToString().Replace(_systemName ?? "NOSYSTEM", string.Empty);
+            bool isTerraformable = JObject.Parse(journalEntry)["TerraformState"].ToString() == "Terraformable";
+            PlanetClass bodyClass = MapPlanetClass(JObject.Parse(journalEntry)["PlanetClass"].ToString());
+
+            if (isTerraformable || bodyClass == PlanetClass.EarthLike || bodyClass == PlanetClass.AmmoniaWorld || bodyClass == PlanetClass.WaterWorld)
             {
-                PlayTerraformFound();
+                AddSystemPoi(bodyId, bodyName, isTerraformable, bodyClass, distance);
+            }
+        }
 
-                SystemPoiList.Add(new SystemPoi() {
-                    BodyID=scannedBodyId,
-                    PlanetClass = PlanetClass.AmmoniaWorld,
+        private void AddSystemPoi(int bodyId, string bodyName, bool isTerraformble, PlanetClass planetClass, int distance)
+        {
+            if (!SystemPoiList.Any(item => item.BodyID == bodyId))
+            {
+                PlaySystemPoiFound(planetClass);
+
+                SystemPoiList.Add(new SystemPoi()
+                {
+                    BodyID = bodyId,
+                    PlanetClass = planetClass,
                     BodyName = bodyName,
-                    IsTerraformable = true,
+                    IsTerraformable = isTerraformble,
                     SurfaceScanned = false,
-                    DistanceFromEntry = distance });
-
-                CurrentEventText.Text = $"Terraformable found: {JObject.Parse(journalEntry)["BodyName"]}";
+                    DistanceFromEntry = distance
+                });
             }
         }
 
@@ -264,28 +275,24 @@ namespace EDOverlay
             Clipboard.SetText(textblock.ToString());
         }
 
-        // TODO: Refactor all these audio methods into one method
-        private void PlayTerraformFound()
+        private void PlaySystemPoiFound(PlanetClass planetClass)
         {
-            _player.Open(new Uri($"{Environment.CurrentDirectory}/sounds/terraform.wav"));
-            _player.Play();
-        }
-
-        private void PlayEarthLikeFound()
-        {
-            _player.Open(new Uri($"{Environment.CurrentDirectory}/sounds/earthlikeworld.wav"));
-            _player.Play();
-        }
-
-        private void PlayWaterWorldFound()
-        {
-            _player.Open(new Uri($"{Environment.CurrentDirectory}/sounds/waterworld.wav"));
-            _player.Play();
-        }
-
-        private void PlayAmmoniaWorldFound()
-        {
-            _player.Open(new Uri($"{Environment.CurrentDirectory}/sounds/ammoniaworld.wav"));
+            switch(planetClass)
+            {
+                case PlanetClass.AmmoniaWorld:
+                    _player.Open(new Uri($"{Environment.CurrentDirectory}/sounds/ammoniaworld.wav"));
+                    break;
+                case PlanetClass.WaterWorld:
+                    _player.Open(new Uri($"{Environment.CurrentDirectory}/sounds/waterworld.wav"));
+                    break;
+                case PlanetClass.EarthLike:
+                    _player.Open(new Uri($"{Environment.CurrentDirectory}/sounds/earthlikeworld.wav"));
+                    break;
+                default:
+                    _player.Open(new Uri($"{Environment.CurrentDirectory}/sounds/terraform.wav"));
+                    break;
+            }
+            
             _player.Play();
         }
 
@@ -301,13 +308,17 @@ namespace EDOverlay
             {
                 case "Icy body":
                     return PlanetClass.Icy;
+                case "Rocky body":
+                    return PlanetClass.Rocky;
+                case "Sudarsky class II gas giant":
+                    return PlanetClass.ClassIIGasGiant;
                 case "High metal content body":
                     return PlanetClass.HighMetalContent;
                 case "Water world":
                     return PlanetClass.WaterWorld;
                 case "Ammonia world":
                     return PlanetClass.AmmoniaWorld;
-                case "Earthlike world":
+                case "Earthlike body":
                     return PlanetClass.EarthLike;
                 default:
                     return PlanetClass.Icy;
@@ -371,7 +382,9 @@ namespace EDOverlay
     public enum PlanetClass
     {
         Icy,
+        Rocky,
         HighMetalContent,
+        ClassIIGasGiant,
         EarthLike,
         WaterWorld,
         AmmoniaWorld

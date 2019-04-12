@@ -14,24 +14,26 @@
     </Window.Resources>    
     <Grid MouseLeftButtonDown="InterfaceItem_MakeDraggable">
         <StackPanel Orientation="Vertical">
-          <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">                         
-            <Button x:Name="VeryCommonButton" Width="25" Height="25" Margin="5" Click="VeryCommonButton_Click" Background="Transparent" BorderThickness="0" Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}">
-              <Image Source="images\matgrade0.png"></Image>
-            </Button>
-            <Button x:Name="CommonButton" Width="25" Height="25" Margin="5" Click="CommonButton_Click" Background="Transparent" BorderThickness="0" Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}">
-              <Image Source="images\matgrade1.png"></Image>
-            </Button>
-            <Button x:Name="UncommonButton" Width="25" Height="25" Margin="5" Click="UncommonButton_Click" Background="Transparent" BorderThickness="0" Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}">
-              <Image Source="images\matgrade2.png"></Image>
-            </Button>
-            <Button x:Name="RareButton" Width="25" Height="25" Margin="5" Click="RareButton_Click" Background="Transparent" BorderThickness="0" Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}">
-              <Image Source="images\matgrade3.png"></Image>
-            </Button>
-            <Button x:Name="ExitButton" Width="25" Height="25" Margin="30 5 5 5" Click="ExitButton_Click" Background="Transparent" BorderThickness="0" Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}">
-              <Image Source="images\exitbutton.png"></Image>
-            </Button>
-          </StackPanel>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">                         
+                <Button x:Name="VeryCommonButton" Width="25" Height="25" Margin="5" Click="VeryCommonButton_Click" Background="Transparent" BorderThickness="0" Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}">
+                    <Image Source="images\matgrade0.png"></Image>
+                </Button>
+                <Button x:Name="CommonButton" Width="25" Height="25" Margin="5" Click="CommonButton_Click" Background="Transparent" BorderThickness="0" Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}">
+                    <Image Source="images\matgrade1.png"></Image>
+                </Button>
+                <Button x:Name="UncommonButton" Width="25" Height="25" Margin="5" Click="UncommonButton_Click" Background="Transparent" BorderThickness="0" Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}">
+                    <Image Source="images\matgrade2.png"></Image>
+                </Button>
+                <Button x:Name="RareButton" Width="25" Height="25" Margin="5" Click="RareButton_Click" Background="Transparent" BorderThickness="0" Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}">
+                    <Image Source="images\matgrade3.png"></Image>
+                </Button>
+                <Button x:Name="ExitButton" Width="25" Height="25" Margin="30 5 5 5" Click="ExitButton_Click" Background="Transparent" BorderThickness="0" Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}">
+                    <Image Source="images\exitbutton.png"></Image>
+                </Button>
+            </StackPanel>
             <ProgressBar x:Name="eventProgressBar" Background="Transparent" BorderThickness="0" />
+            
+            
             <ListView x:Name="DiscoveryOutputListView" ItemsSource="{Binding}" Background="Transparent" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                 <ListView.ItemContainerStyle>
                     <Style TargetType="ListViewItem">
@@ -48,14 +50,35 @@
                     </DataTemplate>
                 </ListView.ItemTemplate>
             </ListView>
+            
+            
             <TextBlock x:Name="POIText" Height="auto" Width="auto" Foreground="#FFF6FF35" />
-            <!-- Text="{Binding Source=SystemPoiList, Converter={StaticResource ListToStringConverter}}" -->
+            
+            
             <ListBox x:Name="POIListBox" Height="auto" Width="auto" Foreground="#FF2BD810" Background="#FF1D4B18" ItemsSource="{Binding}" BorderThickness="0">
+                <ListBox.ItemContainerStyle>
+                    <Style TargetType="ListBoxItem">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding Path=SurfaceScanned}" Value="True">
+                                <Setter Property="Foreground" Value="#FF535353" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding Path=PlanetClass}" Value="AmmoniaWorld">
+                                <Setter Property="Foreground" Value="#FF9E976A" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding Path=PlanetClass}" Value="WaterWorld">
+                                <Setter Property="Foreground" Value="#FF1381F0" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding Path=PlanetClass}" Value="Earthlike">
+                                <Setter Property="Foreground" Value="#FF00CDD6" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </ListBox.ItemContainerStyle>
                 <ListBox.Template>
                     <ControlTemplate>
                         <DockPanel LastChildFill="True">
                             <Grid DockPanel.Dock="Top">
-                                <TextBlock Grid.Column="0" Text="{Binding Path=Count, StringFormat='Terraformables: {0}'}"></TextBlock>
+                                <TextBlock Grid.Column="0" Text="{Binding Path=Count, StringFormat='Map-worthy Bodys: {0}'}"></TextBlock>
                             </Grid>
                             <ItemsPresenter></ItemsPresenter>
                         </DockPanel>
@@ -74,6 +97,8 @@
                     </DataTemplate>
                 </ListBox.ItemTemplate>
             </ListBox>
+            
+            
             <Line StrokeThickness="10" Height="5" Width="auto" OverridesDefaultStyle="True"></Line>
             <TextBlock x:Name="CurrentEventText" Height="auto" Width="320"  Text="Welcome to SurfaceMatTracker!" Foreground="#FFF6FF35" Background="Transparent" TextWrapping="Wrap"/>
         </StackPanel>
