@@ -21,7 +21,7 @@
             <Button x:Name="CommonButton" Width="25" Height="25" Margin="5" Click="CommonButton_Click" Background="Transparent" BorderThickness="0" Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}">
               <Image Source="images\matgrade1.png"></Image>
             </Button>
-            <Button x:Name="UncommonButton" Width="25" Height="25" Margin="5" Click="UncommonButton_Click" Background="Transparent" BorderThickness="0" Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}"">
+            <Button x:Name="UncommonButton" Width="25" Height="25" Margin="5" Click="UncommonButton_Click" Background="Transparent" BorderThickness="0" Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}">
               <Image Source="images\matgrade2.png"></Image>
             </Button>
             <Button x:Name="RareButton" Width="25" Height="25" Margin="5" Click="RareButton_Click" Background="Transparent" BorderThickness="0" Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}">
@@ -43,7 +43,7 @@
                         <StackPanel Orientation="Horizontal" Width="auto">
                             <TextBlock Text="{Binding Path=Key}" Width="80"  Foreground="#FFF6FF35" FontWeight="Bold" />
                             <TextBlock Text="{Binding Value.Percent}" Width="40" FontWeight="Bold" Foreground="#FF51C5FB" />
-                            <TextBlock Text="{Binding Value.BodyName}" FontWeight="Bold" Foreground="#FFBB721A" />
+                            <TextBlock Text="{Binding Value.BodyName}" FontWeight="Bold" Foreground="#FFBB721A" MouseRightButtonDown="CopySystem_Click"/>
                         </StackPanel>
                     </DataTemplate>
                 </ListView.ItemTemplate>

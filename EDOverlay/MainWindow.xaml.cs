@@ -260,7 +260,7 @@ namespace EDOverlay
         private void CopySystem_Click(object sender, EventArgs e)
         {
             var textblock = (sender as TextBlock).Text;
-            
+
             Clipboard.SetText(textblock.ToString());
         }
 
