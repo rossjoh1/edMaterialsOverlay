@@ -11,6 +11,7 @@
     </Window.Background>
     <Window.Resources>
         <local:ListToStringConverter x:Key="ListToStringConverter" />
+        <local:BoolToMappedConverter x:Key="BoolToMappedConverter" />
     </Window.Resources>    
     <Grid MouseLeftButtonDown="InterfaceItem_MakeDraggable">
         <StackPanel Orientation="Vertical">
@@ -88,17 +89,19 @@
                     <DataTemplate>
                         <TextBlock>
                             <TextBlock.Text>
-                                <MultiBinding StringFormat="Planet: {0} at {1} ls from entry">
+                                <MultiBinding StringFormat="{}{0}: {1} at {2} ls from entry ({3})">
+                                    <Binding Path="PlanetClass" />
                                     <Binding Path="BodyName" />
                                     <Binding Path="DistanceFromEntry" />
+                                    <Binding Path="SurfaceScanned" Converter="{StaticResource BoolToMappedConverter}" />
                                 </MultiBinding>
                             </TextBlock.Text>
                         </TextBlock>
                     </DataTemplate>
                 </ListBox.ItemTemplate>
             </ListBox>
-            
-            
+
+            <!-- Text="{Binding Source=SystemPoiList, Converter={StaticResource ListToStringConverter}}" -->
             <Line StrokeThickness="10" Height="5" Width="auto" OverridesDefaultStyle="True"></Line>
             <TextBlock x:Name="CurrentEventText" Height="auto" Width="320"  Text="Welcome to SurfaceMatTracker!" Foreground="#FFF6FF35" Background="Transparent" TextWrapping="Wrap"/>
         </StackPanel>

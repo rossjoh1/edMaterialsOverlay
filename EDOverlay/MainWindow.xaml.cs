@@ -18,6 +18,8 @@ using Newtonsoft.Json.Linq;
 using System.Globalization;
 using System.Windows.Markup;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 
 namespace EDOverlay
 {
@@ -32,7 +34,9 @@ namespace EDOverlay
         private MediaPlayer _player = new MediaPlayer();
         private string _systemName;
 
-        public ObservableCollection<SystemPoi> SystemPoiList = new ObservableCollection<SystemPoi>();
+        public int TotalSystemBodies { get; set; }
+        public int TotalSystemNonBodies { get; set; }
+        public ItemChangingObservableCollection<SystemPoi> SystemPoiList = new ItemChangingObservableCollection<SystemPoi>();
 
         public MainWindow()
         {
@@ -120,6 +124,13 @@ namespace EDOverlay
                 SystemPoiList.Clear();
             }
 
+            // Honked
+            if (journalEntry.Contains("FSSDiscoveryScan"))
+            {
+                TotalSystemBodies = (int)JObject.Parse(journalEntry)["BodyCount"];
+                TotalSystemNonBodies = (int)JObject.Parse(journalEntry)["NonBodyCount"];
+            }
+
             // Scanned a planet
             else if (journalEntry.Contains("\"event\":\"Scan\""))
             {
@@ -163,9 +174,9 @@ namespace EDOverlay
             int bodyId = (int)JObject.Parse(journalEntry)["BodyID"];
             int distance = Convert.ToInt32(JObject.Parse(journalEntry)["DistanceFromArrivalLS"]);
 
-            string bodyName = JObject.Parse(journalEntry)["BodyName"].ToString().Replace(_systemName ?? "NOSYSTEM", string.Empty);
-            bool isTerraformable = JObject.Parse(journalEntry)["TerraformState"].ToString() == "Terraformable";
-            PlanetClass bodyClass = MapPlanetClass(JObject.Parse(journalEntry)["PlanetClass"].ToString());
+            string bodyName = JObject.Parse(journalEntry)["BodyName"].ToString()?.Replace(_systemName ?? "NOSYSTEM", string.Empty);
+            bool isTerraformable = JObject.Parse(journalEntry)["TerraformState"]?.ToString() == "Terraformable";
+            PlanetClass bodyClass = MapPlanetClass(JObject.Parse(journalEntry)["PlanetClass"]?.ToString());
 
             if (isTerraformable || bodyClass == PlanetClass.EarthLike || bodyClass == PlanetClass.AmmoniaWorld || bodyClass == PlanetClass.WaterWorld)
             {
@@ -369,14 +380,32 @@ namespace EDOverlay
         public string BodyName { get; set; }
     }
 
-    public class SystemPoi
+    public class SystemPoi : INotifyPropertyChanged
     {
         public int BodyID { get; set; }
         public PlanetClass PlanetClass { get; set; }
         public string BodyName { get; set; }
         public bool IsTerraformable { get; set; }
         public int DistanceFromEntry { get; set; }
-        public bool SurfaceScanned { get; set; }
+
+        private bool _surfaceScanned;
+        public bool SurfaceScanned
+        {
+            get { return _surfaceScanned; }
+
+            set
+            {
+                _surfaceScanned = value;
+                NotifyPropertyChanged();
+            }
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        public void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
     }
 
     public enum PlanetClass
@@ -418,6 +447,20 @@ namespace EDOverlay
                 throw new InvalidOperationException("The target must be a String");
 
             return String.Join(Environment.NewLine, ((ObservableCollection<string>)value).ToArray());
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    [ValueConversion(typeof(bool), typeof(string))]
+    public class BoolToMappedConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+        {
+            return (bool)value ? "mapped" : "not mapped";
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
