@@ -33,26 +33,27 @@
                 </Button>
             </StackPanel>
             <ProgressBar x:Name="eventProgressBar" Background="Transparent" BorderThickness="0" />
-            
-            
-            <ListView x:Name="DiscoveryOutputListView" ItemsSource="{Binding}" Background="Transparent" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
-                <ListView.ItemContainerStyle>
-                    <Style TargetType="ListViewItem">
-                        <EventSetter Event="PreviewMouseLeftButtonDown" Handler="InterfaceItem_MakeDraggable" />
-                    </Style>
-                </ListView.ItemContainerStyle>
-                <ListView.ItemTemplate>
-                    <DataTemplate>
-                        <StackPanel Orientation="Horizontal" Width="auto">
-                            <TextBlock Text="{Binding Path=Key}" Width="80"  Foreground="#FFF6FF35" FontWeight="Bold" />
-                            <TextBlock Text="{Binding Value.Percent}" Width="40" FontWeight="Bold" Foreground="#FF51C5FB" />
-                            <TextBlock Text="{Binding Value.BodyName}" FontWeight="Bold" Foreground="#FFBB721A" MouseRightButtonDown="CopySystem_Click"/>
-                        </StackPanel>
-                    </DataTemplate>
-                </ListView.ItemTemplate>
-            </ListView>
-            
-            
+
+            <Expander Name="materialExpander" Background="Transparent" HorizontalAlignment="Left" Header="Materials" Foreground="#FFF6FF35" ExpandDirection="Down" IsExpanded="True">
+                <ListView x:Name="DiscoveryOutputListView" ItemsSource="{Binding}" Background="Transparent" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                    <ListView.ItemContainerStyle>
+                        <Style TargetType="ListViewItem">
+                            <EventSetter Event="PreviewMouseLeftButtonDown" Handler="InterfaceItem_MakeDraggable" />
+                        </Style>
+                    </ListView.ItemContainerStyle>
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal" Width="auto">
+                                <TextBlock Text="{Binding Path=Key}" Width="80"  Foreground="#FFF6FF35" FontWeight="Bold" />
+                                <TextBlock Text="{Binding Value.Percent}" Width="40" FontWeight="Bold" Foreground="#FF51C5FB" />
+                                <TextBlock Text="{Binding Value.BodyName}" FontWeight="Bold" Foreground="#FFBB721A" MouseRightButtonDown="CopySystem_Click"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+            </Expander>
+
+
             <TextBlock x:Name="POIText" Height="auto" Width="auto" Foreground="#FFF6FF35" />
             
             
