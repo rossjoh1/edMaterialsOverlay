@@ -321,10 +321,14 @@ namespace EDOverlay
                     return PlanetClass.Icy;
                 case "Rocky body":
                     return PlanetClass.Rocky;
+                case "Rocky ice body":
+                    return PlanetClass.RockyIce;
+                case "Metal rich body":
+                    return PlanetClass.MetalRich;
                 case "Sudarsky class II gas giant":
                     return PlanetClass.ClassIIGasGiant;
                 case "High metal content body":
-                    return PlanetClass.HighMetalContent;
+                    return PlanetClass.HMC;
                 case "Water world":
                     return PlanetClass.WaterWorld;
                 case "Ammonia world":
@@ -412,7 +416,9 @@ namespace EDOverlay
     {
         Icy,
         Rocky,
-        HighMetalContent,
+        RockyIce,
+        HMC,
+        MetalRich,
         ClassIIGasGiant,
         EarthLike,
         WaterWorld,

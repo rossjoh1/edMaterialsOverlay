@@ -60,9 +60,6 @@
                 <ListBox.ItemContainerStyle>
                     <Style TargetType="ListBoxItem">
                         <Style.Triggers>
-                            <DataTrigger Binding="{Binding Path=SurfaceScanned}" Value="True">
-                                <Setter Property="Foreground" Value="#FF535353" />
-                            </DataTrigger>
                             <DataTrigger Binding="{Binding Path=PlanetClass}" Value="AmmoniaWorld">
                                 <Setter Property="Foreground" Value="#FF9E976A" />
                             </DataTrigger>
@@ -72,6 +69,9 @@
                             <DataTrigger Binding="{Binding Path=PlanetClass}" Value="Earthlike">
                                 <Setter Property="Foreground" Value="#FF00CDD6" />
                             </DataTrigger>
+                            <DataTrigger Binding="{Binding Path=SurfaceScanned}" Value="True">
+                                <Setter Property="Foreground" Value="#FF535353" />
+                            </DataTrigger>                            
                         </Style.Triggers>
                     </Style>
                 </ListBox.ItemContainerStyle>
@@ -79,7 +79,7 @@
                     <ControlTemplate>
                         <DockPanel LastChildFill="True">
                             <Grid DockPanel.Dock="Top">
-                                <TextBlock Grid.Column="0" Text="{Binding Path=Count, StringFormat='Map-worthy Bodys: {0}'}"></TextBlock>
+                                <TextBlock Grid.Column="0" FontWeight="Bold" Text="{Binding Path=Count, StringFormat=' Map-worthy Bodys: {0}'}"></TextBlock>
                             </Grid>
                             <ItemsPresenter></ItemsPresenter>
                         </DockPanel>
@@ -87,11 +87,11 @@
                 </ListBox.Template>
                 <ListBox.ItemTemplate>
                     <DataTemplate>
-                        <TextBlock>
+                        <TextBlock FontWeight="DemiBold">
                             <TextBlock.Text>
-                                <MultiBinding StringFormat="{}{0}: {1} at {2} ls from entry ({3})">
-                                    <Binding Path="PlanetClass" />
+                                <MultiBinding StringFormat="Planet {0} ({1}) at {2} ls ({3})">
                                     <Binding Path="BodyName" />
+                                    <Binding Path="PlanetClass" />
                                     <Binding Path="DistanceFromEntry" />
                                     <Binding Path="SurfaceScanned" Converter="{StaticResource BoolToMappedConverter}" />
                                 </MultiBinding>

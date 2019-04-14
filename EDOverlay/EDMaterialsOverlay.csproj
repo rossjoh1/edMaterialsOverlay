@@ -129,6 +129,7 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="sounds\ammoniaworld.wav" />
     <Content Include="sounds\waterworld.wav">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
