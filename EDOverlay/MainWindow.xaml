@@ -104,7 +104,9 @@
 
             <!-- Text="{Binding Source=SystemPoiList, Converter={StaticResource ListToStringConverter}}" -->
             <Line StrokeThickness="10" Height="5" Width="auto" OverridesDefaultStyle="True"></Line>
-            <TextBlock x:Name="CurrentEventText" Height="auto" Width="320"  Text="Welcome to SurfaceMatTracker!" Foreground="#FFF6FF35" Background="Transparent" TextWrapping="Wrap"/>
+            <Expander Name="debugExpander" Background="Transparent" HorizontalAlignment="Left" Header="Debugging Log" Foreground="#FFF6FF35" ExpandDirection="Down" IsExpanded="True">
+                <TextBlock x:Name="CurrentEventText" Height="auto" Width="320"  Text="Welcome to SurfaceMatTracker!" Foreground="#FFF6FF35" Background="Transparent" TextWrapping="Wrap"/>
+            </Expander>
         </StackPanel>
     </Grid>
 </Window>
