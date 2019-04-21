@@ -102,6 +102,10 @@
                 </ListBox.ItemTemplate>
             </ListBox>
 
+            <Expander x:Name="chatExpander" Background="Transparent" HorizontalAlignment="Left" Header="Chat Log" Foreground="#FFF6FF35" ExpandDirection="Down" IsExpanded="False">
+                <TextBlock x:Name="chatText" Height="auto" Width="320" Text="Your chat log is currently empty." Foreground="#FFF6FF35" Background="Transparent" TextWrapping="Wrap" />
+            </Expander>
+
             <!-- Text="{Binding Source=SystemPoiList, Converter={StaticResource ListToStringConverter}}" -->
             <Line StrokeThickness="10" Height="5" Width="auto" OverridesDefaultStyle="True"></Line>
             <Expander Name="debugExpander" Background="Transparent" HorizontalAlignment="Left" Header="Debugging Log" Foreground="#FFF6FF35" ExpandDirection="Down" IsExpanded="True">

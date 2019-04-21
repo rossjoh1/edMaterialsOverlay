@@ -33,6 +33,7 @@ namespace EDOverlay
         private Dictionary<string, HighestConcentationLocation> _highestConcentrations = new Dictionary<string, HighestConcentationLocation>();
         private MediaPlayer _player = new MediaPlayer();
         private string _systemName;
+        private int _msgCount = 0;
 
         public int TotalSystemBodies { get; set; }
         public int TotalSystemNonBodies { get; set; }
@@ -158,6 +159,12 @@ namespace EDOverlay
                     scannedBody.SurfaceScanned = true;
             }
 
+            // Received a chat message
+            else if (journalEntry.Contains("\"event\":\"ReceiveText\""))
+            {
+                ProcessReceivedMessage(journalEntry);
+            }
+
             // ED closed
             else if (journalEntry.Contains("\"event\":\"Shutdown\""))
             {
@@ -167,6 +174,31 @@ namespace EDOverlay
             {
                 CurrentEventText.Text = journalEntry;
             }
+        }
+
+        private void ProcessReceivedMessage(string journalEntry)
+        {
+            string msgFrom = JObject.Parse(journalEntry)["From"]?.ToString();
+            string msgBody = JObject.Parse(journalEntry)["Message"]?.ToString();
+            bool isPlayer = JObject.Parse(journalEntry)["Channel"]?.ToString() == "player";
+
+            if (isPlayer)
+            {
+                AddNewMessage(msgFrom, msgBody);
+            }
+        }
+
+        private void AddNewMessage(string msgFrom, string msgBody)
+        {
+            if (_msgCount > 5)
+            {
+                // delete the least recent message from list
+            }
+
+            // add new message to list
+            chatText.Text = "From: " + msgFrom + " -- " + msgBody;
+
+            _msgCount++;
         }
 
         private void ProcessScannedBody(string journalEntry)
