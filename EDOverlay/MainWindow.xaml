@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:EDOverlay"
         mc:Ignorable="d"
+        DataContext="{Binding RelativeSource={RelativeSource Mode=Self}}"
         Title="MainWindow" WindowStyle="None" AllowsTransparency="True" BorderThickness=".5" Topmost="True" WindowStartupLocation="CenterScreen" OpacityMask="Black" BorderBrush="#FF291B6A" SizeToContent="Height" Width="340" ResizeMode="CanResizeWithGrip">
     <Window.Background>
         <SolidColorBrush Opacity="0.3" Color="Black" />
@@ -12,10 +13,10 @@
     <Window.Resources>
         <local:ListToStringConverter x:Key="ListToStringConverter" />
         <local:BoolToMappedConverter x:Key="BoolToMappedConverter" />
-    </Window.Resources>    
+    </Window.Resources>
     <Grid MouseLeftButtonDown="InterfaceItem_MakeDraggable">
         <StackPanel Orientation="Vertical">
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">                         
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                 <Button x:Name="VeryCommonButton" Width="25" Height="25" Margin="5" Click="VeryCommonButton_Click" Background="Transparent" BorderThickness="0" Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}">
                     <Image Source="images\matgrade0.png"></Image>
                 </Button>
@@ -54,9 +55,23 @@
             </Expander>
 
 
-            <TextBlock x:Name="POIText" Height="auto" Width="auto" Foreground="#FFF6FF35" />
-            
-            
+            <TextBlock x:Name="SystemTrafficText" Height="auto" Width="auto" Margin="10" Text="{Binding TrafficText, NotifyOnTargetUpdated=True}" Foreground="#FF34E3FF" FontWeight="Bold" TextAlignment="Center">
+                <TextBlock.Triggers>
+                    <EventTrigger RoutedEvent="Binding.TargetUpdated">
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation
+                                    Storyboard.TargetName="SystemTrafficText" 
+                                    Storyboard.TargetProperty="(TextBlock.Opacity)"
+                                    From="0.0" To="1.0" Duration="0:0:2"/>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </EventTrigger>
+                </TextBlock.Triggers>
+            </TextBlock>
+
+
+
             <ListBox x:Name="POIListBox" Height="auto" Width="auto" Foreground="#FF2BD810" Background="#FF1D4B18" ItemsSource="{Binding}" BorderThickness="0">
                 <ListBox.ItemContainerStyle>
                     <Style TargetType="ListBoxItem">
@@ -72,7 +87,7 @@
                             </DataTrigger>
                             <DataTrigger Binding="{Binding Path=SurfaceScanned}" Value="True">
                                 <Setter Property="Foreground" Value="#FF535353" />
-                            </DataTrigger>                            
+                            </DataTrigger>
                         </Style.Triggers>
                     </Style>
                 </ListBox.ItemContainerStyle>
@@ -108,7 +123,8 @@
 
             <!-- Text="{Binding Source=SystemPoiList, Converter={StaticResource ListToStringConverter}}" -->
             <Line StrokeThickness="10" Height="5" Width="auto" OverridesDefaultStyle="True"></Line>
-            <Expander Name="debugExpander" Background="Transparent" HorizontalAlignment="Left" Header="Debugging Log" Foreground="#FFF6FF35" ExpandDirection="Down" IsExpanded="True" Template="{StaticResource Template1}">
+
+            <Expander Name="eventExpander" Background="Transparent" HorizontalAlignment="Left" Header="Event Log" Foreground="#FFF6FF35" ExpandDirection="Down" IsExpanded="True" Template="{StaticResource Template1}">
                 <TextBlock x:Name="CurrentEventText" Height="auto" Width="320"  Text="Welcome to SurfaceMatTracker!" Foreground="#FFF6FF35" Background="Transparent" TextWrapping="Wrap"/>
             </Expander>
         </StackPanel>

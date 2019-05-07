@@ -20,20 +20,22 @@ using System.Windows.Markup;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Configuration;
 
 namespace EDOverlay
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class MainWindow : Window, INotifyPropertyChanged
     {
         // not sure if this path can be changed by config/install.  mine is here
         private string _edJournalPath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), @"Saved Games\Frontier Developments\Elite Dangerous");
         private Dictionary<string, HighestConcentationLocation> _highestConcentrations = new Dictionary<string, HighestConcentationLocation>();
         private MediaPlayer _player = new MediaPlayer();
         private string _systemName;
-        private int _msgCount = 0;
+        private EdsmApiProvider _edsmProvider;
+        private bool _isEdsmApiReady;
 
         public int TotalSystemBodies { get; set; }
         public int TotalSystemNonBodies { get; set; }
@@ -49,6 +51,7 @@ namespace EDOverlay
             POIListBox.DataContext = SystemPoiList;
             //Dispatcher.Invoke( () => MakeProgress() )
 
+            LoadConfig();
             WatchJournalForChanges();
         }
 
@@ -65,10 +68,22 @@ namespace EDOverlay
                         ProcessMaterials(line);
                     }
                 }
-                catch(Exception ex)
+                catch(Exception)
                 {
                     // couldn't get the file. must have been busy.  move on
                 }
+            }
+        }
+
+        private void LoadConfig()
+        {
+            string edsmApiKey = ConfigurationManager.AppSettings["edsmApiKey"] ?? null;
+            string pilotName = ConfigurationManager.AppSettings["edsmCmdrName"] ?? null;
+
+            if (edsmApiKey != null && pilotName != null)
+            {
+                _isEdsmApiReady = true;
+                _edsmProvider = new EdsmApiProvider(pilotName, edsmApiKey);
             }
         }
 
@@ -116,13 +131,24 @@ namespace EDOverlay
             });
         }
 
-        private void ProcessLiveEntry(string journalEntry)
+        private async void ProcessLiveEntry(string journalEntry)
         {
             // Jump to new system
             if (journalEntry.Contains("\"event\":\"FSDJump\""))
             {
                 _systemName = JObject.Parse(journalEntry)["StarSystem"].ToString();
                 SystemPoiList.Clear();
+
+                if (_isEdsmApiReady)
+                {
+                    //await Task.Delay(1000); // wait a second to let EDSM be updated
+                    var systemTraffic = await _edsmProvider.GetSystemTrafficAsync(_systemName);
+                    if (systemTraffic == null)
+                        TrafficText = "EDSM had no data";
+                    else
+                        TrafficText = $"Discovered by {systemTraffic?.discovery?.commander} on {systemTraffic?.discovery?.date}" +
+                            $"\nTotal Traffic: {systemTraffic.traffic.total} ships ({systemTraffic.traffic.week} this week)";
+                }
             }
 
             // Honked
@@ -144,8 +170,7 @@ namespace EDOverlay
                 foreach (var find in ProcessMaterials(journalEntry))
                 {
                     PlayNewHighConcentationFound();
-                    //CurrentEventText.Text = $"New high concentration found for {material.Name} on {bodyName}!";
-                    POIText.Text = find;
+                    //POIText.Text = find;
                 }
             }
 
@@ -190,15 +215,8 @@ namespace EDOverlay
 
         private void AddNewMessage(string msgFrom, string msgBody)
         {
-            if (_msgCount > 5)
-            {
-                // delete the least recent message from list
-            }
-
             // add new message to list
             chatText.Text = "From: " + msgFrom + " -- " + msgBody;
-
-            _msgCount++;
         }
 
         private void ProcessScannedBody(string journalEntry)
@@ -400,6 +418,27 @@ namespace EDOverlay
             {"Tellurium", Rarity.Rare },
             {"Yttrium", Rarity.Rare }
         };
+
+        #region Dependency Properties
+        private string _trafficText = "Awaiting new system";
+        public string TrafficText
+        {
+            get { return _trafficText; }
+
+            set
+            {
+                _trafficText = value;
+                NotifyPropertyChanged();
+            }
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+        #endregion
     }
 
     public class MaterialConcentration
