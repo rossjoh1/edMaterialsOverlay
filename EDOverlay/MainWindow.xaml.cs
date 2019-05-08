@@ -133,7 +133,24 @@ namespace EDOverlay
 
         private async void ProcessLiveEntry(string journalEntry)
         {
-            // Jump to new system
+            // Jumping to new system
+            if (journalEntry.Contains("\"event\":\"StartJump\"") && journalEntry.Contains("Hyperspace"))
+            {
+                _systemName = JObject.Parse(journalEntry)["StarSystem"].ToString();
+                var starClass = JObject.Parse(journalEntry)["StarClass"].ToString();
+                SystemPoiList.Clear();
+
+                string upcomingStar;
+
+                if (starClass == "N")
+                    upcomingStar = "CAUTION: Non-Sequence star ahead!";
+                else
+                    upcomingStar = $"a class {starClass} star...";
+
+                TrafficText = $"Standby for system {_systemName}\n" + upcomingStar;
+            }
+
+            // Jumped to new system
             if (journalEntry.Contains("\"event\":\"FSDJump\""))
             {
                 _systemName = JObject.Parse(journalEntry)["StarSystem"].ToString();
@@ -141,12 +158,12 @@ namespace EDOverlay
 
                 if (_isEdsmApiReady)
                 {
-                    //await Task.Delay(1000); // wait a second to let EDSM be updated
+                    await Task.Delay(1000); // wait a second to let EDSM be updated
                     var systemTraffic = await _edsmProvider.GetSystemTrafficAsync(_systemName);
                     if (systemTraffic == null)
                         TrafficText = "EDSM had no data";
                     else
-                        TrafficText = $"Discovered by {systemTraffic?.discovery?.commander} on {systemTraffic?.discovery?.date}" +
+                        TrafficText = $"Discovered by CMDR {systemTraffic?.discovery?.commander} on {systemTraffic?.discovery?.date}" +
                             $"\nTotal Traffic: {systemTraffic.traffic.total} ships ({systemTraffic.traffic.week} this week)";
                 }
             }

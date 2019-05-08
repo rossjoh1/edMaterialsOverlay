@@ -57,7 +57,7 @@ namespace EDOverlay
                 private string _date;
                 public string date
                 {
-                    get { return DateTime.Parse(_date).ToShortDateString(); }
+                    get { return DateTime.Parse(_date).AddYears(1286).ToShortDateString(); }
                     set { _date = value; }
                 }
             }
