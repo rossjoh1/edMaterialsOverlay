@@ -160,7 +160,7 @@ namespace EDOverlay
                 {
                     await Task.Delay(1000); // wait a second to let EDSM be updated
                     var systemTraffic = await _edsmProvider.GetSystemTrafficAsync(_systemName);
-                    if (systemTraffic == null)
+                    if (systemTraffic == null || systemTraffic.id == 0)
                         TrafficText = "EDSM had no data";
                     else
                         TrafficText = $"Discovered by CMDR {systemTraffic?.discovery?.commander} on {systemTraffic?.discovery?.date}" +
