@@ -176,23 +176,23 @@ namespace EDOverlay
             }
 
             // Scanned a planet
-            else if (journalEntry.Contains("\"event\":\"Scan\""))
+            if (journalEntry.Contains("\"event\":\"Scan\""))
             {
                 ProcessScannedBody(journalEntry);
             }
 
             // Landable (materials) found
-            else if (journalEntry.Contains("\"event\":\"Scan\"") && journalEntry.Contains("\"Landable\":true"))
-            {
+            if (journalEntry.Contains("\"event\":\"Scan\"") && journalEntry.Contains("\"Landable\":true"))
+            {  
                 foreach (var find in ProcessMaterials(journalEntry))
                 {
-                    PlayNewHighConcentationFound();
                     //POIText.Text = find;
+
                 }
             }
 
             // Surface Scan Complete
-            else if (journalEntry.Contains("\"event\":\"SAAScanComplete\""))
+            if (journalEntry.Contains("\"event\":\"SAAScanComplete\""))
             {
                 int scannedBodyId = (int)JObject.Parse(journalEntry)["BodyID"];
                 var scannedBody = SystemPoiList.FirstOrDefault(poi => poi.BodyID == scannedBodyId);
@@ -202,13 +202,13 @@ namespace EDOverlay
             }
 
             // Received a chat message
-            else if (journalEntry.Contains("\"event\":\"ReceiveText\""))
+            if (journalEntry.Contains("\"event\":\"ReceiveText\""))
             {
                 ProcessReceivedMessage(journalEntry);
             }
 
             // ED closed
-            else if (journalEntry.Contains("\"event\":\"Shutdown\""))
+            if (journalEntry.Contains("\"event\":\"Shutdown\""))
             {
                 Application.Current.Shutdown();
             }
@@ -291,6 +291,7 @@ namespace EDOverlay
                 {
                     _highestConcentrations[element] = new HighestConcentationLocation(decimal.Round(material.Percent, 2), bodyName);
                     newFindings.Add($"High contentration ({material.Name}): {material.Percent}");
+                    PlayNewHighConcentationFound();
                 }
             }
 
