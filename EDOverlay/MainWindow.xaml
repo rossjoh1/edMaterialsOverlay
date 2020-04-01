@@ -16,8 +16,10 @@
     </Window.Resources>
     <Grid MouseLeftButtonDown="InterfaceItem_MakeDraggable">
         <StackPanel Orientation="Vertical">
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                <Button x:Name="VeryCommonButton" Width="25" Height="25" Margin="5" Click="VeryCommonButton_Click" Background="Transparent" BorderThickness="0" Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}">
+            <Grid>
+            <!--<StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Width="Auto">-->
+                <TextBlock Text="ED: Explorers Companion" Margin="5 5 30 5" HorizontalAlignment="Left" Foreground="Orange" FontWeight="Black" FontSize="14" />
+                <!--<Button x:Name="VeryCommonButton" Width="25" Height="25" Margin="5" Click="VeryCommonButton_Click" Background="Transparent" BorderThickness="0" Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}">
                     <Image Source="images\matgrade0.png"></Image>
                 </Button>
                 <Button x:Name="CommonButton" Width="25" Height="25" Margin="5" Click="CommonButton_Click" Background="Transparent" BorderThickness="0" Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}">
@@ -28,12 +30,18 @@
                 </Button>
                 <Button x:Name="RareButton" Width="25" Height="25" Margin="5" Click="RareButton_Click" Background="Transparent" BorderThickness="0" Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}">
                     <Image Source="images\matgrade3.png"></Image>
-                </Button>
-                <Button x:Name="ExitButton" Width="25" Height="25" Margin="30 5 5 5" Click="ExitButton_Click" Background="Transparent" BorderThickness="0" Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}">
+                </Button>-->
+                <Button x:Name="ExitButton" Width="25" Height="25" HorizontalAlignment="Right" Margin="0 0 0 0" Click="ExitButton_Click" Background="Transparent" BorderThickness="0" Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}">
                     <Image Source="images\exitbutton.png"></Image>
                 </Button>
-            </StackPanel>
+            </Grid>
+            <!--</StackPanel>-->
             <ProgressBar x:Name="eventProgressBar" Background="Transparent" BorderThickness="0" />
+
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Width="Auto">
+                <TextBlock Text="Jumps Remaining:" Margin="5 0 0 0" Foreground="Magenta" FontWeight="DemiBold" />
+                <TextBlock x:Name="RemainingJumps" Height="auto" Width="Auto" Margin="5 0 0 0" Text="{Binding _jumpsRemaining}" Foreground="Magenta" FontWeight="DemiBold" />
+            </StackPanel>
 
             <Expander Name="materialExpander" Background="Transparent" HorizontalAlignment="Left" Header="Materials" Foreground="#FFF6FF35" ExpandDirection="Down" IsExpanded="True" Template="{StaticResource Template1}">
                 <ListView x:Name="DiscoveryOutputListView" ItemsSource="{Binding}" Background="Transparent" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
@@ -46,12 +54,12 @@
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal" Width="auto">
                                 <TextBlock Text="{Binding Path=Key}" Width="80" Foreground="#FFF6FF35" FontWeight="Bold">
-                                    <TextBlock.Background>
+                                    <!--<TextBlock.Background>
                                         <SolidColorBrush x:Name="MySolidColorBrush" Color="#FFF6FF35" />
-                                    </TextBlock.Background>
+                                    </TextBlock.Background>-->
                                     
                                     <!-- Animates the text block's color. -->
-                                    <TextBlock.Triggers>
+                                    <!--<TextBlock.Triggers>
                                         <EventTrigger RoutedEvent="TextBlock.Loaded">
                                             <BeginStoryboard>
                                                 <Storyboard>
@@ -59,13 +67,13 @@
                                                         Storyboard.TargetName="MySolidColorBrush"
                                                         Storyboard.TargetProperty="Color"
                                                         From="Transparent" To="Cyan" Duration="0:0:.5"
-                                                        AutoReverse="True" RepeatBehavior="0:0:10" />
+                                                        AutoReverse="True" RepeatBehavior="0:0:5" />
                                                 </Storyboard>
                                             </BeginStoryboard>
                                         </EventTrigger>
-                                    </TextBlock.Triggers>
+                                    </TextBlock.Triggers>-->
                                 </TextBlock>
-                                <TextBlock Text="{Binding Value.Percent, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="40" FontWeight="Bold" Foreground="#FF51C5FB" />
+                                <TextBlock Text="{Binding Value.Percent}" Width="40" FontWeight="Bold" Foreground="#FF51C5FB" />
                                 <TextBlock Text="{Binding Value.BodyName}" FontWeight="Bold" Foreground="#FFBB721A" MouseRightButtonDown="CopySystem_Click"/>
                             </StackPanel>
                         </DataTemplate>
@@ -136,15 +144,15 @@
                 </ListBox.ItemTemplate>
             </ListBox>
 
-            <Expander x:Name="chatExpander" Background="Transparent" HorizontalAlignment="Left" Header="Chat Log" Foreground="#FFF6FF35" ExpandDirection="Down" IsExpanded="False" Template="{StaticResource Template1}">
+            <!--<Expander x:Name="chatExpander" Background="Transparent" HorizontalAlignment="Left" Header="Chat Log" Foreground="#FFF6FF35" ExpandDirection="Down" IsExpanded="False" Template="{StaticResource Template1}">
                 <TextBlock x:Name="chatText" Height="auto" Width="320" Text="Your chat log is currently empty." Foreground="#FFF6FF35" Background="Transparent" TextWrapping="Wrap" />
-            </Expander>
+            </Expander>-->
 
             <!-- Text="{Binding Source=SystemPoiList, Converter={StaticResource ListToStringConverter}}" -->
             <Line StrokeThickness="10" Height="5" Width="auto" OverridesDefaultStyle="True"></Line>
 
-            <Expander Name="eventExpander" Background="Transparent" HorizontalAlignment="Left" Header="Event Log" Foreground="#FFF6FF35" ExpandDirection="Down" IsExpanded="True" Template="{StaticResource Template1}">
-                <TextBlock x:Name="CurrentEventText" Height="auto" Width="320"  Text="Welcome to SurfaceMatTracker!" Foreground="#FFF6FF35" Background="Transparent" TextWrapping="Wrap"/>
+            <Expander Name="eventExpander" Background="Transparent" HorizontalAlignment="Left" Header="Debug Log" Foreground="#FFF6FF35" ExpandDirection="Down" IsExpanded="True" Template="{StaticResource Template1}">
+                <TextBlock x:Name="CurrentEventText" Height="auto" Width="320"  Text="Welcome to ED: Explorers Companion!" Foreground="#FFF6FF35" Background="Transparent" TextWrapping="Wrap"/>
             </Expander>
         </StackPanel>
     </Grid>

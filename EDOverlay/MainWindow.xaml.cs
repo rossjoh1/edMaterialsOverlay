@@ -176,23 +176,23 @@ namespace EDOverlay
             }
 
             // Scanned a planet
-            if (journalEntry.Contains("\"event\":\"Scan\""))
+            else if (journalEntry.Contains("\"event\":\"Scan\""))
             {
                 ProcessScannedBody(journalEntry);
             }
 
             // Landable (materials) found
-            if (journalEntry.Contains("\"event\":\"Scan\"") && journalEntry.Contains("\"Landable\":true"))
+            else if (journalEntry.Contains("\"event\":\"Scan\"") && journalEntry.Contains("\"Landable\":true"))
             {  
                 foreach (var find in ProcessMaterials(journalEntry))
                 {
                     //POIText.Text = find;
-
+                    Console.WriteLine(find);
                 }
             }
 
             // Surface Scan Complete
-            if (journalEntry.Contains("\"event\":\"SAAScanComplete\""))
+            else if (journalEntry.Contains("\"event\":\"SAAScanComplete\""))
             {
                 int scannedBodyId = (int)JObject.Parse(journalEntry)["BodyID"];
                 var scannedBody = SystemPoiList.FirstOrDefault(poi => poi.BodyID == scannedBodyId);
@@ -201,14 +201,31 @@ namespace EDOverlay
                     scannedBody.SurfaceScanned = true;
             }
 
-            // Received a chat message
-            if (journalEntry.Contains("\"event\":\"ReceiveText\""))
+            // FSD Target to calculate remaining jumps
+            else if (journalEntry.Contains("\"event\":\"FSDTarget\"") || journalEntry.Contains("\"event\":\"Music\", \"MusicTrack\":\"DestinationFromHyperspace\""))
             {
-                ProcessReceivedMessage(journalEntry);
+                if (journalEntry.Contains("\"event\":\"FSDTarget\""))
+                {
+                    int _jumpsRemaining = (int)JObject.Parse(journalEntry)["RemainingJumpsInRoute"];
+
+                    // Print Remaining Jumps to Textblock
+                    RemainingJumps.Text = _jumpsRemaining.ToString();
+                }
+                if (journalEntry.Contains("\"event\":\"Music\", \"MusicTrack\":\"DestinationFromHyperspace\""))
+                {
+                    // Destination Reached
+                    RemainingJumps.Text = "Destination Reached!";
+                }
             }
 
+            //// Received a chat message
+            //else if (journalEntry.Contains("\"event\":\"ReceiveText\""))
+            //{
+            //    ProcessReceivedMessage(journalEntry);
+            //}
+
             // ED closed
-            if (journalEntry.Contains("\"event\":\"Shutdown\""))
+            else if (journalEntry.Contains("\"event\":\"Shutdown\""))
             {
                 Application.Current.Shutdown();
             }
@@ -218,23 +235,23 @@ namespace EDOverlay
             }
         }
 
-        private void ProcessReceivedMessage(string journalEntry)
-        {
-            string msgFrom = JObject.Parse(journalEntry)["From"]?.ToString();
-            string msgBody = JObject.Parse(journalEntry)["Message"]?.ToString();
-            bool isPlayer = JObject.Parse(journalEntry)["Channel"]?.ToString() == "player";
+        //private void ProcessReceivedMessage(string journalEntry)
+        //{
+        //    string msgFrom = JObject.Parse(journalEntry)["From"]?.ToString();
+        //    string msgBody = JObject.Parse(journalEntry)["Message"]?.ToString();
+        //    bool isPlayer = JObject.Parse(journalEntry)["Channel"]?.ToString() == "player";
 
-            if (isPlayer)
-            {
-                AddNewMessage(msgFrom, msgBody);
-            }
-        }
+        //    if (isPlayer)
+        //    {
+        //        AddNewMessage(msgFrom, msgBody);
+        //    }
+        //}
 
-        private void AddNewMessage(string msgFrom, string msgBody)
-        {
-            // add new message to list
-            chatText.Text = "From: " + msgFrom + " -- " + msgBody;
-        }
+        //private void AddNewMessage(string msgFrom, string msgBody)
+        //{
+        //    // add new message to list
+        //    chatText.Text = "From: " + msgFrom + " -- " + msgBody;
+        //}
 
         private void ProcessScannedBody(string journalEntry)
         {
@@ -326,26 +343,25 @@ namespace EDOverlay
             Close();
         }
 
-        private void VeryCommonButton_Click(object sender, EventArgs e)
-        {
-            
+        //private void VeryCommonButton_Click(object sender, EventArgs e)
+        //{            
 
-        }
+        //}
         
-        private void CommonButton_Click(object sender, EventArgs e)
-        {
+        //private void CommonButton_Click(object sender, EventArgs e)
+        //{
             
-        }
+        //}
 
-        private void UncommonButton_Click(object sender, EventArgs e)
-        {
+        //private void UncommonButton_Click(object sender, EventArgs e)
+        //{
             
-        }
+        //}
 
-        private void RareButton_Click(object sender, EventArgs e)
-        {
+        //private void RareButton_Click(object sender, EventArgs e)
+        //{
             
-        }
+        //}
 
         private void CopySystem_Click(object sender, EventArgs e)
         {
@@ -359,13 +375,13 @@ namespace EDOverlay
             switch(planetClass)
             {
                 case PlanetClass.AmmoniaWorld:
-                    _player.Open(new Uri($"{Environment.CurrentDirectory}/sounds/ammoniaworld.wav"));
+                    _player.Open(new Uri($"{Environment.CurrentDirectory}/sounds/terraform.wav"));
                     break;
                 case PlanetClass.WaterWorld:
-                    _player.Open(new Uri($"{Environment.CurrentDirectory}/sounds/waterworld.wav"));
+                    _player.Open(new Uri($"{Environment.CurrentDirectory}/sounds/terraform.wav"));
                     break;
                 case PlanetClass.EarthLike:
-                    _player.Open(new Uri($"{Environment.CurrentDirectory}/sounds/earthlikeworld.wav"));
+                    _player.Open(new Uri($"{Environment.CurrentDirectory}/sounds/terraform.wav"));
                     break;
                 default:
                     _player.Open(new Uri($"{Environment.CurrentDirectory}/sounds/terraform.wav"));
