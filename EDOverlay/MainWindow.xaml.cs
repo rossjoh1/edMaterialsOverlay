@@ -1,19 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using System.IO;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Globalization;
 using System.Windows.Markup;
@@ -43,16 +37,14 @@ namespace EDOverlay
 
         public MainWindow()
         {
-            FindTopMaterialsInLogs();
-
             InitializeComponent();
+            LoadConfig();
+            FindTopMaterialsInLogs();
+            WatchJournalForChanges();
 
             DiscoveryOutputListView.DataContext = _highestConcentrations.OrderBy(entry => entry.Key);
             POIListBox.DataContext = SystemPoiList;
             //Dispatcher.Invoke( () => MakeProgress() )
-
-            LoadConfig();
-            WatchJournalForChanges();
         }
 
         private void FindTopMaterialsInLogs()
@@ -335,12 +327,21 @@ namespace EDOverlay
 
         private void InterfaceItem_MakeDraggable(object sender, MouseButtonEventArgs e)
         {
-            DragMove();
+            if (Mouse.LeftButton == MouseButtonState.Pressed)
+            {
+                DragMove();
+            }
         }
 
         private void ExitButton_Click(object sender, EventArgs e)
         {
             Close();
+        }
+
+        private void SettingsButton_Click(object sender, EventArgs e)
+        {
+            OptionsWindow options = new OptionsWindow();
+            options.Show();
         }
 
         //private void VeryCommonButton_Click(object sender, EventArgs e)

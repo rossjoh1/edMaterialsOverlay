@@ -8,7 +8,7 @@ namespace EDOverlay
 {
     public class EdsmApiProvider
     {
-        private static HttpClient client = new HttpClient();
+        private static readonly HttpClient client = new HttpClient();
         private string CmdrName { get; set; }
         private string ApiKey { get; set; }
 

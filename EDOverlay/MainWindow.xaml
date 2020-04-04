@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:EDOverlay"
         mc:Ignorable="d"
+        MouseLeftButtonDown="InterfaceItem_MakeDraggable"
         DataContext="{Binding RelativeSource={RelativeSource Mode=Self}}"
         Title="MainWindow" WindowStyle="None" AllowsTransparency="True" BorderThickness=".5" Topmost="True" WindowStartupLocation="CenterScreen" OpacityMask="Black" BorderBrush="#FF291B6A" SizeToContent="WidthAndHeight" Width="340">
     <Window.Background>
@@ -14,11 +15,11 @@
         <local:ListToStringConverter x:Key="ListToStringConverter" />
         <local:BoolToMappedConverter x:Key="BoolToMappedConverter" />
     </Window.Resources>
-    <Grid MouseLeftButtonDown="InterfaceItem_MakeDraggable">
+    <Grid>
         <StackPanel Orientation="Vertical">
             <Grid>
             <!--<StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Width="Auto">-->
-                <TextBlock Text="ED: Explorers Companion" Margin="5 5 30 5" HorizontalAlignment="Left" Foreground="Orange" FontWeight="Black" FontSize="14" />
+                <TextBlock Text="ED: Explorers Companion" Margin="5 5 50 5" HorizontalAlignment="Left" Foreground="Orange" FontWeight="Black" FontSize="14" />
                 <!--<Button x:Name="VeryCommonButton" Width="25" Height="25" Margin="5" Click="VeryCommonButton_Click" Background="Transparent" BorderThickness="0" Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}">
                     <Image Source="images\matgrade0.png"></Image>
                 </Button>
@@ -31,7 +32,10 @@
                 <Button x:Name="RareButton" Width="25" Height="25" Margin="5" Click="RareButton_Click" Background="Transparent" BorderThickness="0" Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}">
                     <Image Source="images\matgrade3.png"></Image>
                 </Button>-->
-                <Button x:Name="ExitButton" Width="25" Height="25" HorizontalAlignment="Right" Margin="0 0 0 0" Click="ExitButton_Click" Background="Transparent" BorderThickness="0" Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}">
+                <Button x:Name="SettingsButton" Width="20" Height="20" HorizontalAlignment="Right" Margin="0 0 20 0" Click="SettingsButton_Click" Background="Transparent" BorderThickness="0" Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}">
+                    <Image Source="images\settingsbtn.png"></Image>
+                </Button>
+                <Button x:Name="ExitButton" Width="18" Height="18" HorizontalAlignment="Right" Margin="0 0 2 0" Click="ExitButton_Click" Background="Transparent" BorderThickness="0" Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}">
                     <Image Source="images\exitbutton.png"></Image>
                 </Button>
             </Grid>
