@@ -28,6 +28,7 @@ namespace EDOverlay
         private Dictionary<string, HighestConcentationLocation> _highestConcentrations = new Dictionary<string, HighestConcentationLocation>();
         private MediaPlayer _player = new MediaPlayer();
         private string _systemName;
+        private string _abbreviation;
         private EdsmApiProvider _edsmProvider;
         private bool _isEdsmApiReady;
 
@@ -291,14 +292,15 @@ namespace EDOverlay
 
                 string element = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(material.Name);
                 string bodyName = json["BodyName"].ToString();
+                AddAbbreviation(element);
 
                 if (!_highestConcentrations.ContainsKey(element))
                 {
-                    _highestConcentrations.Add(element, new HighestConcentationLocation(decimal.Round(material.Percent, 2), bodyName));
+                    _highestConcentrations.Add(element, new HighestConcentationLocation(_abbreviation ,decimal.Round(material.Percent, 2), bodyName));
                 }
                 else if (material.Percent > _highestConcentrations[element].Percent)
                 {
-                    _highestConcentrations[element] = new HighestConcentationLocation(decimal.Round(material.Percent, 2), bodyName);
+                    _highestConcentrations[element] = new HighestConcentationLocation(_abbreviation, decimal.Round(material.Percent, 2), bodyName);
                     newFindings.Add($"High contentration ({material.Name}): {material.Percent}");
                     PlayNewHighConcentationFound();
                 }
@@ -398,6 +400,61 @@ namespace EDOverlay
             _player.Play();
         }
 
+        private void AddAbbreviation(string material)
+        {
+            
+            if (material == "Carbon")
+                _abbreviation = "(C)";
+            if (material == "Iron")
+                _abbreviation = "(Fe)";
+            if (material == "Nickel")
+                _abbreviation = "(Ni)";
+            if (material == "Phosphorus")
+                _abbreviation = "(P)";
+            if (material == "Sulphur")
+                _abbreviation = "(S)";
+            if (material == "Arsenic")
+                _abbreviation = "(As)";
+            if (material == "Chromium")
+                _abbreviation = "(Cr)";
+            if (material == "Germanium")
+                _abbreviation = "(Ge)";
+            if (material == "Manganese")
+                _abbreviation = "(Mn)";
+            if (material == "Vanadium")
+                _abbreviation = "(V)";
+            if (material == "Zinc")
+                _abbreviation = "(Zn)";
+            if (material == "Zirconium")
+                _abbreviation = "(Zr)";
+            if (material == "Cadmium")
+                _abbreviation = "(Cd)";
+            if (material == "Mercury")
+                _abbreviation = "(Hg)";
+            if (material == "Molybdenum")
+                _abbreviation = "(Mo)";
+            if (material == "Niobium")
+                _abbreviation = "(Nb)";
+            if (material == "Tin")
+                _abbreviation = "(Sn)";
+            if (material == "Tungsten")
+                _abbreviation = "(W)";
+            if (material == "Antimony")
+                _abbreviation = "(Sb)";
+            if (material == "Polonium")
+                _abbreviation = "(Po)";
+            if (material == "Ruthenium")
+                _abbreviation = "(Ru)";
+            if (material == "Selenium")
+                _abbreviation = "(Se)";
+            if (material == "Technetium")
+                _abbreviation = "(Tc)";
+            if (material == "Tellurium")
+                _abbreviation = "(Te)";
+            if (material == "Yttrium")
+                _abbreviation = "(Y)";
+        }
+
         private PlanetClass MapPlanetClass(string edPlanetClass)
         {
             switch (edPlanetClass)
@@ -485,7 +542,8 @@ namespace EDOverlay
 
     public class HighestConcentationLocation
     {
-        public HighestConcentationLocation(decimal percent, string body) { Percent = percent; BodyName = body; }
+        public HighestConcentationLocation(string abbreviation, decimal percent, string body) { Abbreviation = abbreviation;  Percent = percent; BodyName = body; }
+        public string Abbreviation { get; set; }
         public decimal Percent { get; set; }
         public string BodyName { get; set; }
     }
