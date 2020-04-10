@@ -166,12 +166,21 @@ namespace EDOverlay
             {
                 TotalSystemBodies = (int)JObject.Parse(journalEntry)["BodyCount"];
                 TotalSystemNonBodies = (int)JObject.Parse(journalEntry)["NonBodyCount"];
+
+                // Print total bodies to Textblock
+                TotalBodies.Text = TotalSystemBodies.ToString();
             }
 
             // Scanned a planet
             else if (journalEntry.Contains("\"event\":\"Scan\""))
             {
                 ProcessScannedBody(journalEntry);
+            }
+
+            // All bodies scanned
+            else if (journalEntry.Contains("\"event\":\"FSSAllBodiesFound\""))
+            {
+                TotalBodies.Text = "System Scan Complete";
             }
 
             // Landable (materials) found
@@ -197,6 +206,8 @@ namespace EDOverlay
             // FSD Target to calculate remaining jumps
             else if (journalEntry.Contains("\"event\":\"FSDTarget\"") || journalEntry.Contains("\"event\":\"Music\", \"MusicTrack\":\"DestinationFromHyperspace\""))
             {
+                TotalBodies.Text = "Awaiting Scan";
+                
                 if (journalEntry.Contains("\"event\":\"FSDTarget\""))
                 {
                     int _jumpsRemaining = (int)JObject.Parse(journalEntry)["RemainingJumpsInRoute"];

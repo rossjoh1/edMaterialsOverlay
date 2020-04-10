@@ -78,8 +78,8 @@
                                         </EventTrigger>
                                     </TextBlock.Triggers>-->
                                 </TextBlock>
-                                <TextBlock Text="{Binding Value.Percent}" Width="40" FontWeight="Bold" Foreground="#FF51C5FB" />
-                                <TextBlock Text="{Binding Value.BodyName}" FontWeight="Bold" Foreground="#FFBB721A" MouseRightButtonDown="CopySystem_Click"/>
+                                <TextBlock Text="{Binding Value.Percent, Mode=TwoWay}"  Width="40" FontWeight="Bold" Foreground="#FF51C5FB" />
+                                <TextBlock Text="{Binding Value.BodyName, Mode=TwoWay}" FontWeight="Bold" Foreground="#FFBB721A" MouseRightButtonDown="CopySystem_Click"/>
                             </StackPanel>
                         </DataTemplate>
                     </ListView.ItemTemplate>
@@ -102,7 +102,10 @@
                 </TextBlock.Triggers>
             </TextBlock>
 
-
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Width="Auto">
+                <TextBlock Text="Total Bodies in System:" Margin="5 0 0 0" Foreground="Cyan" FontWeight="Bold" />
+                <TextBlock x:Name="TotalBodies" Height="Auto" Width="Auto" Margin="3 0 5 0" Text="{Binding _totalBodies, FallbackValue=Awating Scan}" Foreground="Cyan" FontWeight="Bold" />
+            </StackPanel>
 
             <ListBox x:Name="POIListBox" Height="auto" Width="auto" Foreground="#FF2BD810" Background="#FF1D4B18" ItemsSource="{Binding}" BorderThickness="0">
                 <ListBox.ItemContainerStyle>
