@@ -31,9 +31,6 @@ namespace EDOverlay
         private string _abbreviation;
         private EdsmApiProvider _edsmProvider;
         private bool _isEdsmApiReady;
-        private float _fuelMaxCapacity;
-        private float _fuelCurrent;
-        private bool _lowFuel = false;
 
         public int TotalSystemBodies { get; set; }
         public int TotalSystemNonBodies { get; set; }
@@ -128,24 +125,6 @@ namespace EDOverlay
 
         private async void ProcessLiveEntry(string journalEntry)
         {
-            // Calculate ships fuel max compacity
-            if (journalEntry.Contains("\"event\":\"Loadout\""))
-            {
-                var fuelCapacity = JObject.Parse(journalEntry)["FuelCapacity"];
-                _fuelMaxCapacity = (float)fuelCapacity["Main"];
-                FuelLevelMax.Text = _fuelMaxCapacity.ToString();
-                LowFuel(_fuelCurrent, _fuelMaxCapacity);
-            }
-
-            // Get ships current fuel level when loading a game
-            if (journalEntry.Contains("\"event\":\"LoadGame\""))
-            {
-                _fuelCurrent = (float)JObject.Parse(journalEntry)["FuelLevel"];
-                _fuelMaxCapacity = (float)JObject.Parse(journalEntry)["FuelCapacity"];
-                FuelLevelCurrent.Text = _fuelCurrent.ToString();
-                FuelLevelMax.Text = _fuelMaxCapacity.ToString();
-                LowFuel(_fuelCurrent, _fuelMaxCapacity);
-            }
 
             // Jumping to new system
             if (journalEntry.Contains("\"event\":\"StartJump\"") && journalEntry.Contains("Hyperspace"))
@@ -154,44 +133,20 @@ namespace EDOverlay
                 var starClass = JObject.Parse(journalEntry)["StarClass"].ToString();
                 SystemPoiList.Clear();
 
-                // Check to see if we are low on fuel (<= 1/4 of max capacity)
-                LowFuel(_fuelCurrent, _fuelMaxCapacity);
-
                 string upcomingStar;
 
-                if (starClass == "K" || starClass == "G" || starClass == "B" || starClass == "F" || starClass == "O" || starClass == "A" || starClass == "M" && _lowFuel)
-                    upcomingStar = $"a class {starClass} star...\nWARNING: Fuel Levels below 25%, please refuel here.";
-                if (starClass == "K" || starClass == "G" || starClass == "B" || starClass == "F" || starClass == "O" || starClass == "A" || starClass == "M" && !_lowFuel)
-                    upcomingStar = $"a class {starClass} star...";
-                if (starClass == "N" && _lowFuel)
-                    upcomingStar = $"CAUTION: Non-Sequence star ahead!\nWARNING: Fuel Levels below 25%. Reroute to KGBFOAM start to refuel.";
-                if (starClass == "N" && !_lowFuel)
-                    upcomingStar = $"CAUTION: Non-Sequence star ahead!";
-                if (_lowFuel)
-                    upcomingStar = $"a class {starClass} star...\nWARNING: Fuel Levels below 25%. Reroute to KGBFOAM start to refuel.";
+                if (starClass == "N")
+                    upcomingStar = "CAUTION: Non-Sequence star ahead!";
                 else
                     upcomingStar = $"a class {starClass} star...";
 
                 TrafficText = $"Standby for system {_systemName}\n" + upcomingStar;
-
-                // TODO Make fuel warning it's own textbox. Make the text red and then refactor this whole if statement to use that
-                // TODO Make a class for all star types then we can just call starClass.fuelable
-                // TODO Figure out what other event can alter the fuel tank of your ship
-            }
-
-            // Set fuel levels after fuel scooping
-            if (journalEntry.Contains("\"event\":\"FuelScoop\""))
-            {
-                _fuelCurrent = (float)JObject.Parse(journalEntry)["Total"];
-                FuelLevelCurrent.Text = _fuelCurrent.ToString();
             }
 
             // Jumped to new system
             if (journalEntry.Contains("\"event\":\"FSDJump\""))
             {
                 _systemName = JObject.Parse(journalEntry)["StarSystem"].ToString();
-                _fuelCurrent = (float)JObject.Parse(journalEntry)["FuelLevel"];
-                FuelLevelCurrent.Text = _fuelCurrent.ToString();
                 SystemPoiList.Clear();
 
                 if (_isEdsmApiReady)
@@ -282,14 +237,6 @@ namespace EDOverlay
             {
                 CurrentEventText.Text = journalEntry;
             }
-        }
-
-        private void LowFuel(float fuelCurrent, float fuelMax)
-        {
-            if (fuelCurrent <= fuelMax / 4f)
-                _lowFuel = true;
-            else
-                _lowFuel = false;
         }
 
         //private void ProcessReceivedMessage(string journalEntry)

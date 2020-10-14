@@ -50,12 +50,6 @@
                 <TextBlock Text="Jumps Remaining:" Margin="5 0 0 0" Foreground="Magenta" FontWeight="DemiBold" />
                 <TextBlock x:Name="RemainingJumps" Height="auto" Width="Auto" Margin="5 0 0 0" Text="{Binding _jumpsRemaining}" Foreground="Magenta" FontWeight="DemiBold" />
             </StackPanel>
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Width="Auto">
-                <TextBlock Text="Fuel Current:" Margin="5 0 0 0" Foreground="Red" FontWeight="DemiBold" />
-                <TextBlock x:Name="FuelLevelCurrent" Height="Auto" Width="Auto" Margin="5 0 0 0" Text="{Binding _fuelCurrent}" Foreground="Red" FontWeight="DemiBold" />
-                <TextBlock Text="Max:" Margin="5 0 0 0" Foreground="Red" FontWeight="DemiBold" />
-                <TextBlock x:Name="FuelLevelMax" Height="Auto" Width="Auto" Margin="5 0 0 0" Text="{Binding _fuelMaxCapacity}" Foreground="Red" FontWeight="DemiBold" />
-            </StackPanel>
 
             <Expander Name="materialExpander" Background="Transparent" HorizontalAlignment="Left" Header="Materials" Foreground="#FFF6FF35" ExpandDirection="Down" IsExpanded="True" Template="{StaticResource Template1}">
                 <ListView x:Name="DiscoveryOutputListView" ItemsSource="{Binding}" Background="Transparent" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
