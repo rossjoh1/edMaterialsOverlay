@@ -353,9 +353,13 @@ namespace EDOverlay
 
         private void SettingsButton_Click(object sender, EventArgs e)
         {
-            OptionsWindow options = new OptionsWindow();
-            options.Show();
+            if (Application.Current.Windows.OfType<OptionsWindow>().FirstOrDefault() == null)
+            {
+                OptionsWindow options = new OptionsWindow();
+                options.Show();
+            }
         }
+
 
         //private void VeryCommonButton_Click(object sender, EventArgs e)
         //{            
