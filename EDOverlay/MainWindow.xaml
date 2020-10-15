@@ -40,14 +40,11 @@
                 </Button>
             </Grid>
             <!--</StackPanel>-->
-
             
-
-
             <ProgressBar x:Name="eventProgressBar" Background="Transparent" BorderThickness="0" />
 
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Width="Auto">
-                <TextBlock Text="Jumps Remaining:" Margin="5 0 0 0" Foreground="Magenta" FontWeight="DemiBold" />
+                <TextBlock Text="Jumps Remaining in Route:" Margin="5 0 0 0" Foreground="Magenta" FontWeight="DemiBold" />
                 <TextBlock x:Name="RemainingJumps" Height="auto" Width="Auto" Margin="5 0 0 0" Text="{Binding _jumpsRemaining}" Foreground="Magenta" FontWeight="DemiBold" />
             </StackPanel>
 
@@ -156,8 +153,11 @@
                 </ListBox.ItemTemplate>
             </ListBox>
 
-            <!--<Expander x:Name="chatExpander" Background="Transparent" HorizontalAlignment="Left" Header="Chat Log" Foreground="#FFF6FF35" ExpandDirection="Down" IsExpanded="False" Template="{StaticResource Template1}">
-                <TextBlock x:Name="chatText" Height="auto" Width="320" Text="Your chat log is currently empty." Foreground="#FFF6FF35" Background="Transparent" TextWrapping="Wrap" />
+            <!--<Expander x:Name="ExplorerDataExpander" Background="Transparent" HorizontalAlignment="Left" Header="Explorer Data" Foreground="#FFF6FF35" ExpandDirection="Down" IsExpanded="False" Template="{StaticResource Template1}">
+                <StackPanel>
+                    <TextBlock Text="Systems Visited:" Margin="5 0 0 0" Foreground="Cyan" />
+                    <TextBlock x:Name="exDataSysVisited" Margin="5 0 0 0" Height="auto" Width="Auto" Foreground="Cyan" Background="Transparent" TextWrapping="Wrap" />
+                </StackPanel>
             </Expander>-->
 
             <!-- Text="{Binding Source=SystemPoiList, Converter={StaticResource ListToStringConverter}}" -->

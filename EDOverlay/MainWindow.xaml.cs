@@ -42,10 +42,16 @@ namespace EDOverlay
             LoadConfig();
             FindTopMaterialsInLogs();
             WatchJournalForChanges();
+            InitializeData();
 
             DiscoveryOutputListView.DataContext = _highestConcentrations.OrderBy(entry => entry.Key);
             POIListBox.DataContext = SystemPoiList;
             //Dispatcher.Invoke( () => MakeProgress() )
+        }
+
+        private void InitializeData()
+        {
+            RemainingJumps.Text = "Awaiting Plotted Route";
         }
 
         private void FindTopMaterialsInLogs()
@@ -146,6 +152,8 @@ namespace EDOverlay
             // Jumped to new system
             if (journalEntry.Contains("\"event\":\"FSDJump\""))
             {
+                TotalBodies.Text = "Awaiting Scan";
+
                 _systemName = JObject.Parse(journalEntry)["StarSystem"].ToString();
                 SystemPoiList.Clear();
 
@@ -205,28 +213,22 @@ namespace EDOverlay
 
             // FSD Target to calculate remaining jumps
             else if (journalEntry.Contains("\"event\":\"FSDTarget\"") || journalEntry.Contains("\"event\":\"Music\", \"MusicTrack\":\"DestinationFromHyperspace\""))
-            {
-                TotalBodies.Text = "Awaiting Scan";
-                
+            {               
                 if (journalEntry.Contains("\"event\":\"FSDTarget\""))
                 {
                     int _jumpsRemaining = (int)JObject.Parse(journalEntry)["RemainingJumpsInRoute"];
-
+                                       
                     // Print Remaining Jumps to Textblock
-                    RemainingJumps.Text = _jumpsRemaining.ToString();
+                    RemainingJumps.Text = _jumpsRemaining.ToString();                   
                 }
                 if (journalEntry.Contains("\"event\":\"Music\", \"MusicTrack\":\"DestinationFromHyperspace\""))
                 {
                     // Destination Reached
                     RemainingJumps.Text = "Destination Reached!";
+                    await Task.Delay(10000);
+                    RemainingJumps.Text = "Awaiting Plotted Route";
                 }
             }
-
-            //// Received a chat message
-            //else if (journalEntry.Contains("\"event\":\"ReceiveText\""))
-            //{
-            //    ProcessReceivedMessage(journalEntry);
-            //}
 
             // ED closed
             else if (journalEntry.Contains("\"event\":\"Shutdown\""))
@@ -238,24 +240,6 @@ namespace EDOverlay
                 CurrentEventText.Text = journalEntry;
             }
         }
-
-        //private void ProcessReceivedMessage(string journalEntry)
-        //{
-        //    string msgFrom = JObject.Parse(journalEntry)["From"]?.ToString();
-        //    string msgBody = JObject.Parse(journalEntry)["Message"]?.ToString();
-        //    bool isPlayer = JObject.Parse(journalEntry)["Channel"]?.ToString() == "player";
-
-        //    if (isPlayer)
-        //    {
-        //        AddNewMessage(msgFrom, msgBody);
-        //    }
-        //}
-
-        //private void AddNewMessage(string msgFrom, string msgBody)
-        //{
-        //    // add new message to list
-        //    chatText.Text = "From: " + msgFrom + " -- " + msgBody;
-        //}
 
         private void ProcessScannedBody(string journalEntry)
         {
