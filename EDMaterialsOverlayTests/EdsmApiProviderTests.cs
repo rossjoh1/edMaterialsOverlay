@@ -15,8 +15,8 @@ namespace EDOverlay.Tests
     [TestClass()]
     public class EdsmApiProviderTests
     {
-        static string _edsmCmdrName = "WolfHeart";
-        static string _edsmApiKey = "ebb4ccccb06221f6e2eeeb2cd17d6c1c9f270f40";
+        static string _edsmCmdrName = "";
+        static string _edsmApiKey = "";
         EdsmApiProvider edsm = new EdsmApiProvider(_edsmCmdrName, _edsmApiKey);
 
         [TestMethod()]
