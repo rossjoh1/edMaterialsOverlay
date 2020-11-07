@@ -1,11 +1,7 @@
 ﻿using System;
+using System.Configuration;
 using System.Windows;
 using System.Windows.Input;
-using System.IO;
-using System.Windows.Forms;
-using System.Xml.Serialization;
-using System.Configuration;
-using System.Collections.Specialized;
 
 namespace EDOverlay
 {
@@ -13,7 +9,7 @@ namespace EDOverlay
     /// Interaction logic for OptionsWindow.xaml
     /// </summary>
     public partial class OptionsWindow
-    { 
+    {
         public OptionsWindow()
         {
             InitializeComponent();
@@ -37,7 +33,7 @@ namespace EDOverlay
         private void ExitButton_Click(object sender, EventArgs e)
         {
             Close();
-        }        
+        }
 
         private void BtnSaveConfig_Click(object sender, RoutedEventArgs e)
         {

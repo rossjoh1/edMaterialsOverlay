@@ -1,20 +1,21 @@
-﻿using System;
+﻿using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Globalization;
+using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.IO;
-using Newtonsoft.Json.Linq;
-using System.Globalization;
 using System.Windows.Markup;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
-using System.Configuration;
+using System.Windows.Media;
 
 namespace EDOverlay
 {
@@ -32,6 +33,7 @@ namespace EDOverlay
         private EdsmApiProvider _edsmProvider;
         private bool _isEdsmApiReady;
 
+        private IConfiguration _config;
         public int TotalSystemBodies { get; set; }
         public int TotalSystemNonBodies { get; set; }
         public ItemChangingObservableCollection<SystemPoi> SystemPoiList = new ItemChangingObservableCollection<SystemPoi>();
@@ -67,23 +69,33 @@ namespace EDOverlay
                         ProcessMaterials(line);
                     }
                 }
-                catch(Exception)
+                catch (Exception)
                 {
                     // couldn't get the file. must have been busy.  move on
                 }
             }
         }
 
-        private void LoadConfig()
+        private async void LoadConfig()
         {
-            string edsmApiKey = ConfigurationManager.AppSettings["edsmApiKey"] ?? null;
-            string pilotName = ConfigurationManager.AppSettings["edsmCmdrName"] ?? null;
+            var builder = new ConfigurationBuilder()
+              .SetBasePath(AppContext.BaseDirectory)
+              .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+              .AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")}.json", optional: true);
 
-            if (edsmApiKey != null && pilotName != null)
+            _config = builder.Build();
+
+            string edsmApiKey = _config["edsmApiKey"]; 
+            string pilotName = _config["edsmCmdrName"];
+
+            if (string.IsNullOrWhiteSpace(edsmApiKey) || string.IsNullOrWhiteSpace(pilotName))
             {
-                _isEdsmApiReady = true;
-                _edsmProvider = new EdsmApiProvider(pilotName, edsmApiKey);
+                System.Diagnostics.Debug.WriteLine("Warning: EDSM configuration not found");
+                return;
             }
+
+            _edsmProvider = new EdsmApiProvider(pilotName, edsmApiKey);
+            _isEdsmApiReady = await _edsmProvider.Initialize();
         }
 
         private async void WatchJournalForChanges()
@@ -131,9 +143,15 @@ namespace EDOverlay
 
         private async void ProcessLiveEntry(string journalEntry)
         {
+            // what event is this?
+            string eventName = JsonDocument.Parse(journalEntry).RootElement.GetProperty("event").GetString();
+
+            // Update EDSM, if useful
+            if (!_edsmProvider.DiscardedEvents.Contains(eventName))
+                await _edsmProvider.PostEventIfUseful(journalEntry);
 
             // Jumping to new system
-            if (journalEntry.Contains("\"event\":\"StartJump\"") && journalEntry.Contains("Hyperspace"))
+            if (eventName == "StartJump" && journalEntry.Contains("Hyperspace"))
             {
                 _systemName = JObject.Parse(journalEntry)["StarSystem"].ToString();
                 var starClass = JObject.Parse(journalEntry)["StarClass"].ToString();
@@ -150,7 +168,7 @@ namespace EDOverlay
             }
 
             // Jumped to new system
-            if (journalEntry.Contains("\"event\":\"FSDJump\""))
+            if (eventName == "FSDJump")
             {
                 TotalBodies.Text = "Awaiting Scan";
 
@@ -170,7 +188,7 @@ namespace EDOverlay
             }
 
             // Honked
-            if (journalEntry.Contains("FSSDiscoveryScan"))
+            if (eventName == "FSSDiscoveryScan")
             {
                 TotalSystemBodies = (int)JObject.Parse(journalEntry)["BodyCount"];
                 TotalSystemNonBodies = (int)JObject.Parse(journalEntry)["NonBodyCount"];
@@ -180,21 +198,21 @@ namespace EDOverlay
             }
 
             // Scanned a planet
-            else if (journalEntry.Contains("\"event\":\"Scan\""))
+            else if (eventName == "Scan")
             {
                 ProcessScannedBody(journalEntry);
             }
 
             // All bodies scanned
-            else if (journalEntry.Contains("\"event\":\"FSSAllBodiesFound\""))
+            else if (eventName == "FSSAllBodiesFound")
             {
                 TotalBodies.Text = "System Scan Complete";
             }
 
             // Landable (materials) found
-            else if (journalEntry.Contains("\"event\":\"Scan\"") && journalEntry.Contains("\"Landable\":true"))
-            {  
-                foreach (var find in ProcessMaterials(journalEntry))
+            else if (eventName == "Scan" && journalEntry.Contains("\"Landable\":true"))
+            {
+                foreach (var find in ProcessMaterials(journalEntry, false))
                 {
                     //POIText.Text = find;
                     Console.WriteLine(find);
@@ -202,7 +220,7 @@ namespace EDOverlay
             }
 
             // Surface Scan Complete
-            else if (journalEntry.Contains("\"event\":\"SAAScanComplete\""))
+            else if (eventName == "SAAScanComplete")
             {
                 int scannedBodyId = (int)JObject.Parse(journalEntry)["BodyID"];
                 var scannedBody = SystemPoiList.FirstOrDefault(poi => poi.BodyID == scannedBodyId);
@@ -212,14 +230,14 @@ namespace EDOverlay
             }
 
             // FSD Target to calculate remaining jumps
-            else if (journalEntry.Contains("\"event\":\"FSDTarget\"") || journalEntry.Contains("\"event\":\"Music\", \"MusicTrack\":\"DestinationFromHyperspace\""))
-            {               
-                if (journalEntry.Contains("\"event\":\"FSDTarget\""))
+            else if (eventName == "FSDTarget" || journalEntry.Contains("\"event\":\"Music\", \"MusicTrack\":\"DestinationFromHyperspace\""))
+            {
+                if (eventName == "FSDTarget")
                 {
                     int _jumpsRemaining = (int)JObject.Parse(journalEntry)["RemainingJumpsInRoute"];
-                                       
+
                     // Print Remaining Jumps to Textblock
-                    RemainingJumps.Text = _jumpsRemaining.ToString();                   
+                    RemainingJumps.Text = _jumpsRemaining.ToString();
                 }
                 if (journalEntry.Contains("\"event\":\"Music\", \"MusicTrack\":\"DestinationFromHyperspace\""))
                 {
@@ -231,7 +249,7 @@ namespace EDOverlay
             }
 
             // ED closed
-            else if (journalEntry.Contains("\"event\":\"Shutdown\""))
+            else if (eventName == "Shutdown")
             {
                 Application.Current.Shutdown();
             }
@@ -274,7 +292,7 @@ namespace EDOverlay
             }
         }
 
-        private List<string> ProcessMaterials(string journalEntry)
+        private List<string> ProcessMaterials(string journalEntry, bool isSilent = true)
         {
             var json = JObject.Parse(journalEntry);
             var materials = json.SelectToken("Materials");
@@ -291,13 +309,13 @@ namespace EDOverlay
 
                 if (!_highestConcentrations.ContainsKey(element))
                 {
-                    _highestConcentrations.Add(element, new HighestConcentationLocation(_abbreviation ,decimal.Round(material.Percent, 2), bodyName));
+                    _highestConcentrations.Add(element, new HighestConcentationLocation(_abbreviation, decimal.Round(material.Percent, 2), bodyName));
                 }
                 else if (material.Percent > _highestConcentrations[element].Percent)
                 {
                     _highestConcentrations[element] = new HighestConcentationLocation(_abbreviation, decimal.Round(material.Percent, 2), bodyName);
                     newFindings.Add($"High contentration ({material.Name}): {material.Percent}");
-                    PlayNewHighConcentationFound();
+                    if (!isSilent) PlayNewHighConcentationFound();
                 }
             }
 
@@ -349,20 +367,20 @@ namespace EDOverlay
         //{            
 
         //}
-        
+
         //private void CommonButton_Click(object sender, EventArgs e)
         //{
-            
+
         //}
 
         //private void UncommonButton_Click(object sender, EventArgs e)
         //{
-            
+
         //}
 
         //private void RareButton_Click(object sender, EventArgs e)
         //{
-            
+
         //}
 
         private void CopySystem_Click(object sender, EventArgs e)
@@ -374,7 +392,7 @@ namespace EDOverlay
 
         private void PlaySystemPoiFound(PlanetClass planetClass)
         {
-            switch(planetClass)
+            switch (planetClass)
             {
                 case PlanetClass.AmmoniaWorld:
                     _player.Open(new Uri($"{Environment.CurrentDirectory}/sounds/terraform.wav"));
@@ -389,7 +407,7 @@ namespace EDOverlay
                     _player.Open(new Uri($"{Environment.CurrentDirectory}/sounds/terraform.wav"));
                     break;
             }
-            
+
             _player.Play();
         }
 
@@ -401,7 +419,7 @@ namespace EDOverlay
 
         private void AddAbbreviation(string material)
         {
-            
+
             if (material == "Carbon")
                 _abbreviation = "(C)";
             if (material == "Iron")
@@ -541,7 +559,7 @@ namespace EDOverlay
 
     public class HighestConcentationLocation
     {
-        public HighestConcentationLocation(string abbreviation, decimal percent, string body) { Abbreviation = abbreviation;  Percent = percent; BodyName = body; }
+        public HighestConcentationLocation(string abbreviation, decimal percent, string body) { Abbreviation = abbreviation; Percent = percent; BodyName = body; }
         public string Abbreviation { get; set; }
         public decimal Percent { get; set; }
         public string BodyName { get; set; }
