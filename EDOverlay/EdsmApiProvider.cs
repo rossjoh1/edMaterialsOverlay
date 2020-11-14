@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 
@@ -11,8 +13,8 @@ namespace EDOverlay
         private static readonly HttpClient client = new HttpClient();
         private string CmdrName { get; set; }
         private string ApiKey { get; set; }
-        private string AppName = "ED Explorers Companion";
-        private string AppVersion = "0.1.1";   // for now
+        private readonly string AppName = "ED Explorers Companion";
+        private readonly string AppVersion = "0.1.1";   // for now
         private List<string> discardedEvents { get; set; }
 
         public List<string> DiscardedEvents { get => discardedEvents; }
@@ -24,8 +26,7 @@ namespace EDOverlay
 
             client.BaseAddress = new Uri("https://www.edsm.net/");
             client.DefaultRequestHeaders.Accept.Clear();
-            client.DefaultRequestHeaders.Accept.Add(
-                new MediaTypeWithQualityHeaderValue("application/json"));
+            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         }
 
         public async Task<bool> Initialize()
@@ -35,7 +36,7 @@ namespace EDOverlay
 
         public async Task<EdsmLogs> GetSystemLogAsync(string systemName)
         {
-            EdsmLogs logs = null;
+            EdsmLogs logs;
             HttpResponseMessage response = await client.GetAsync($"api-logs-v1/get-logs?commanderName={CmdrName}&apiKey={ApiKey}&systemName={systemName}");
             if (response.IsSuccessStatusCode)
             {
@@ -52,7 +53,7 @@ namespace EDOverlay
 
         public async Task<EdsmTraffic> GetSystemTrafficAsync(string systemName)
         {
-            EdsmTraffic traffic = null;
+            EdsmTraffic traffic;
             HttpResponseMessage response = await client.GetAsync($"api-system-v1/traffic?commanderName={CmdrName}&apiKey={ApiKey}&systemName={systemName}");
             if (response.IsSuccessStatusCode)
             {
@@ -84,15 +85,31 @@ namespace EDOverlay
             }
         }
 
-        public async Task<string> PostEventIfUseful(string journalEntry)
+        public async Task<string> PostEventIfUseful(string journalEntry, TransientState transientState = null)
         {
+            // inject transient properties into event
+            var eventBody = JsonSerializer.Deserialize<Dictionary<string, object>>(journalEntry);
+
+            if (transientState != null)
+            {
+                eventBody.Add("_shipId", transientState._shipId);
+                eventBody.Add("_systemName", transientState._systemName);
+                eventBody.Add("_systemAddress", transientState._systemAddress);
+                eventBody.Add("_systemCoordinates", transientState._systemCoordinates);
+            }
+
+            var entryWithTransientState = JsonSerializer.Serialize(eventBody);
+
+            System.Diagnostics.Debug.WriteLine($"Event with transients: {entryWithTransientState}");
+
+            // compose body as formparts and post
             var content = new FormUrlEncodedContent(new Dictionary<string, string>()
             {
                 ["commanderName"] = CmdrName,
                 ["apiKey"] = ApiKey,
                 ["fromSoftware"] = AppName,
                 ["fromSoftwareVersion"] = AppVersion,
-                ["message"] = journalEntry
+                ["message"] = entryWithTransientState
             });
 
             HttpResponseMessage response = await client.PostAsync("api-journal-v1", content);
@@ -157,5 +174,12 @@ namespace EDOverlay
             }
         }
 
+        public class TransientState
+        {
+            public int _shipId { get; set; }
+            public string _systemName { get; set; }
+            public long _systemAddress { get; set; }
+            public float[] _systemCoordinates { get; set; }
+        }
     }
 }
