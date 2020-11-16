@@ -44,8 +44,12 @@
             <ProgressBar x:Name="eventProgressBar" Background="Transparent" BorderThickness="0" />
 
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Width="Auto">
+                <TextBlock Text="Currently In: " Margin="5 0 0 0" Foreground="White" FontWeight="DemiBold" />
+                <TextBlock x:Name="CurrentSystem" Height="auto" Width="Auto" Margin="5 0 0 0" Foreground="White" FontWeight="DemiBold" Text="{Binding _systemName}" MouseLeftButtonDown="CopySystem_Click" />
+            </StackPanel>            
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Width="Auto">
                 <TextBlock Text="Jumps Remaining in Route:" Margin="5 0 0 0" Foreground="Magenta" FontWeight="DemiBold" />
-                <TextBlock x:Name="RemainingJumps" Height="auto" Width="Auto" Margin="5 0 0 0" Text="{Binding _jumpsRemaining}" Foreground="Magenta" FontWeight="DemiBold" />
+                <TextBlock x:Name="RemainingJumps" Height="auto" Width="Auto" Margin="5 0 0 0" Foreground="Magenta" FontWeight="DemiBold" Text="{Binding _jumpsRemaining}" />
             </StackPanel>
 
             <Expander Name="materialExpander" Background="Transparent" HorizontalAlignment="Left" Header="Materials" Foreground="#FFF6FF35" ExpandDirection="Down" IsExpanded="True" Template="{StaticResource Template1}">
