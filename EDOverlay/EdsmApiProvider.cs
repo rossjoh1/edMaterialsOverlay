@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net.Http;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Net.Http.Headers;
+using System.Runtime.InteropServices;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace EDOverlay
@@ -15,9 +15,7 @@ namespace EDOverlay
         private string ApiKey { get; set; }
         private readonly string AppName = "ED Explorers Companion";
         private readonly string AppVersion = "0.1.1";   // for now
-        private List<string> discardedEvents { get; set; }
-
-        public List<string> DiscardedEvents { get => discardedEvents; }
+        public List<string> DiscardedEvents;
 
         public EdsmApiProvider(string cmdrName, string apiKey)
         {
@@ -75,7 +73,7 @@ namespace EDOverlay
             if (response.IsSuccessStatusCode)
             {
                 System.Diagnostics.Debug.WriteLine("Connected to EDSM");
-                discardedEvents = await response.Content.ReadAsAsync<List<string>>();
+                DiscardedEvents = await response.Content.ReadAsAsync<List<string>>();
                 return true;
             }
             else
@@ -127,22 +125,10 @@ namespace EDOverlay
             }
         }
 
-        public class EdsmLogs
+        #pragma warning disable IDE1006 // Naming Styles
+        public record EdsmLogs(int msgnum, string msg, string startDateTime, string endDateTime, EdsmLogs.log[] logs)
         {
-            public int msgnum { get; set; }
-            public string msg { get; set; }
-            public string startDateTime { get; set; }
-            public string endDateTime { get; set; }
-            public log[] logs { get; set; }
-
-            public class log
-            {
-                public int shipId { get; set; }
-                public string system { get; set; }
-                public long systemId { get; set; }
-                public bool firstDiscoverer { get; set; }
-                public string date { get; set; }
-            }
+            public record log(int shipId, string system, long systemId, bool firstDiscoverer, string date);
         }
 
         public class EdsmTraffic
@@ -161,8 +147,8 @@ namespace EDOverlay
                 private string _date;
                 public string date
                 {
-                    get { return DateTime.Parse(_date).AddYears(1286).ToShortDateString(); }
-                    set { _date = value; }
+                    get => DateTime.Parse(_date).AddYears(1286).ToShortDateString();
+                    set => _date = value;
                 }
             }
 
@@ -173,13 +159,19 @@ namespace EDOverlay
                 public int day { get; set; }
             }
         }
+        // TODO: figure out the correct way to declare this as a record without stackoverflow
+        //public record EdsmTraffic(int id, long id64, string name, string url, EdsmTraffic.discoveryNode discovery, EdsmTraffic.trafficNode traffic)
+        //{
+        //    public record trafficNode(int total, int week, int day);
+        //    public record discoveryNode(string commander, string date)
+        //    {
+        //        public string _date { get; private set; }
+        //        public string date { get => DateTime.Parse(_date).AddYears(1286).ToShortDateString(); }
+        //    }
+        //}
 
-        public class TransientState
-        {
-            public int _shipId { get; set; }
-            public string _systemName { get; set; }
-            public long _systemAddress { get; set; }
-            public float[] _systemCoordinates { get; set; }
-        }
+        public record TransientState(int _shipId, [Optional] string _systemName, [Optional] long? _systemAddress, [Optional] float[] _systemCoordinates);
+
+        #pragma warning restore IDE1006 // Naming Styles
     }
 }

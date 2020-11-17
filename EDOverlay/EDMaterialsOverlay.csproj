@@ -1,6 +1,6 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net5.0-windows</TargetFramework>
     <OutputType>WinExe</OutputType>
     <RootNamespace>EDOverlay</RootNamespace>
     <AssemblyName>EDOverlay</AssemblyName>
@@ -37,6 +37,7 @@
   <PropertyGroup>
     <SignManifests>false</SignManifests>
     <StartupObject></StartupObject>
+    <UserSecretsId>ec87bcea-d113-4b33-87e4-28ff7bd9df51</UserSecretsId>
   </PropertyGroup>
   <ItemGroup>
     <Resource Include="images\settingsbtn.png" />
@@ -98,6 +99,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="5.2.7" />
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="5.0.0" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="3.1.9" />
     <PackageReference Include="System.Data.DataSetExtensions" Version="4.5.0" />
   </ItemGroup>
