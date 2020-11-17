@@ -64,14 +64,14 @@ namespace EDOverlay
 
             public string CmdrNameSave
             {
-                get { return cmdrNameSave; }
-                set { cmdrNameSave = value; }
+                get => cmdrNameSave;
+                set => cmdrNameSave = value;
             }
 
             public string ApiKeySave
             {
-                get { return apiKeySave; }
-                set { apiKeySave = value; }
+                get => apiKeySave;
+                set => apiKeySave = value;
             }
 
             //public string JournalPathSave

@@ -14,6 +14,7 @@
     <Window.Resources>
         <local:ListToStringConverter x:Key="ListToStringConverter" />
         <local:BoolToMappedConverter x:Key="BoolToMappedConverter" />
+        <local:ElementAbbreviationConverter x:Key="ElementAbbreviationConverter" />
     </Window.Resources>
     <Grid>
         <StackPanel Orientation="Vertical">
@@ -45,7 +46,7 @@
 
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Width="Auto">
                 <TextBlock Text="Currently In: " Margin="5 0 0 0" Foreground="White" FontWeight="DemiBold" />
-                <TextBlock x:Name="CurrentSystem" Height="auto" Width="Auto" Margin="5 0 0 0" Foreground="White" FontWeight="DemiBold" Text="{Binding _systemName}" MouseLeftButtonDown="CopySystem_Click" />
+                <TextBlock x:Name="CurrentSystemTextBox" Height="auto" Width="Auto" Margin="5 0 0 0" Foreground="White" FontWeight="DemiBold" Text="{Binding CurrentSystemText, NotifyOnTargetUpdated=True}" MouseLeftButtonDown="CopySystem_Click" />
             </StackPanel>            
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Width="Auto">
                 <TextBlock Text="Jumps Remaining in Route:" Margin="5 0 0 0" Foreground="Magenta" FontWeight="DemiBold" />
@@ -62,7 +63,11 @@
                     <ListView.ItemTemplate>
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal" Width="auto">
-                                <TextBlock Text="{Binding Value.Abbreviation}" Width="25" FontWeight="Bold" FontSize="10" Foreground="#FFF6FF35" />
+                                <TextBlock Width="25" FontWeight="Bold" FontSize="10" Foreground="#FFF6FF35">
+                                    <TextBlock.Text>
+                                        <Binding Path="Key" Converter="{StaticResource ElementAbbreviationConverter}" />
+                                    </TextBlock.Text>
+                                </TextBlock>
                                 <TextBlock Text="{Binding Path=Key}" Width="80" Foreground="#FFF6FF35" FontWeight="Bold">
                                     <!--<TextBlock.Background>
                                         <SolidColorBrush x:Name="MySolidColorBrush" Color="#FFF6FF35" />

@@ -39,7 +39,7 @@ namespace EDOverlay
             {
                 if (item != null)
                 {
-                    item.PropertyChanged += new PropertyChangedEventHandler(item_PropertyChanged);
+                    item.PropertyChanged += new PropertyChangedEventHandler(Item_PropertyChanged);
                 }
             }
         }
@@ -50,12 +50,12 @@ namespace EDOverlay
             {
                 if (item != null)
                 {
-                    item.PropertyChanged -= new PropertyChangedEventHandler(item_PropertyChanged);
+                    item.PropertyChanged -= new PropertyChangedEventHandler(Item_PropertyChanged);
                 }
             }
         }
 
-        private void item_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        private void Item_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             base.OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
         }

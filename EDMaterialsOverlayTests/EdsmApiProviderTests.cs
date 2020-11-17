@@ -1,13 +1,7 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using EDOverlay;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Reflection;
 using System.Threading.Tasks;
-using System.Text.Json;
-using System.Text.Json.Serialization;
-using Microsoft.Extensions.Configuration;
 //using Newtonsoft.Json;
 
 namespace EDOverlay.Tests
@@ -61,7 +55,7 @@ namespace EDOverlay.Tests
             int shipId = 13;
 
             // act
-            var returnValue = await edsm.PostEventIfUseful(journalEntry, new EdsmApiProvider.TransientState { _shipId = shipId });
+            var returnValue = await edsm.PostEventIfUseful(journalEntry, new EdsmApiProvider.TransientState(shipId));
 
             // assert
             Assert.IsTrue(returnValue.Contains("\"msgnum\":100"));

@@ -24,18 +24,17 @@ namespace EDOverlay
     public partial class MainWindow : Window, INotifyPropertyChanged
     {
         // not sure if this path can be changed by config/install.  mine is here
-        private readonly string _edJournalPath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), @"Saved Games\Frontier Developments\Elite Dangerous");
-        private readonly Dictionary<string, HighestConcentationLocation> _highestConcentrations = new Dictionary<string, HighestConcentationLocation>();
-        private readonly MediaPlayer _player = new MediaPlayer();
-        private string _systemName;
-        private long _systemAddress;
-        private float[]  _systemCoordinates;
-        private int _shipId;
-        private string _shipName;
-        private string _cmdrName;
-        private string _abbreviation;
-        private EdsmApiProvider _edsmProvider;
-        private bool _isEdsmApiReady;
+        private readonly string EDJournalPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), @"Saved Games\Frontier Developments\Elite Dangerous");
+        private readonly Dictionary<string, HighestConcentationLocation> HighestConcentrations = new Dictionary<string, HighestConcentationLocation>();
+        private readonly MediaPlayer Player = new MediaPlayer();
+        private string SystemName;
+        private long SystemAddress;
+        private float[] SystemCoordinates;
+        private int ShipId;
+        private string ShipName;
+        private string CmdrName;
+        private EdsmApiProvider EdsmProvider;
+        private bool IsEdsmApiReady;
 
         private IConfiguration _config;
         public int TotalSystemBodies { get; set; }
@@ -50,7 +49,7 @@ namespace EDOverlay
             WatchJournalForChanges();
             InitializeData();
 
-            DiscoveryOutputListView.DataContext = _highestConcentrations.OrderBy(entry => entry.Key);
+            DiscoveryOutputListView.DataContext = HighestConcentrations.OrderBy(entry => entry.Key);
             POIListBox.DataContext = SystemPoiList;
             //Dispatcher.Invoke( () => MakeProgress() )
         }
@@ -62,7 +61,7 @@ namespace EDOverlay
 
         private void FindTopMaterialsInLogs()
         {
-            foreach (var file in Directory.GetFiles(_edJournalPath).Where(filename => System.IO.Path.GetExtension(filename) == ".log"))
+            foreach (var file in Directory.GetFiles(EDJournalPath).Where(filename => System.IO.Path.GetExtension(filename) == ".log"))
             {
                 // we only care about the landable planet scans for this
                 try
@@ -89,7 +88,7 @@ namespace EDOverlay
 
             _config = builder.Build();
 
-            string edsmApiKey = _config["edsmApiKey"]; 
+            string edsmApiKey = _config["edsmApiKey"];
             string pilotName = _config["edsmCmdrName"];
 
             if (string.IsNullOrWhiteSpace(edsmApiKey) || string.IsNullOrWhiteSpace(pilotName))
@@ -98,14 +97,14 @@ namespace EDOverlay
                 return;
             }
 
-            _edsmProvider = new EdsmApiProvider(pilotName, edsmApiKey);
-            _isEdsmApiReady = await _edsmProvider.Initialize();
+            EdsmProvider = new EdsmApiProvider(pilotName, edsmApiKey);
+            IsEdsmApiReady = await EdsmProvider.Initialize();
         }
 
         private async void WatchJournalForChanges()
         {
             // grab the latest log file
-            string logCacheFileName = Directory.GetFiles(_edJournalPath)
+            string logCacheFileName = Directory.GetFiles(EDJournalPath)
                 .Where(file => System.IO.Path.GetExtension(file) == ".log")
                 .OrderByDescending(file => File.GetLastWriteTime(file))
                 .FirstOrDefault();
@@ -114,38 +113,39 @@ namespace EDOverlay
 
             await Task.Run(() =>
             {
-                using (StreamReader reader = new StreamReader(new FileStream(logCacheFileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)))
+                using StreamReader reader = new StreamReader(new FileStream(logCacheFileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite));
+
+                // grab any important info from most recent file up to latest log (EOF)
+                // we can gather global information from the initial records in each file
+                string entry;
+                while ((entry = reader.ReadLine()) != null)
                 {
-                    // grab any important info from this file up to current
-                    string entry;
-                    while ((entry = reader.ReadLine()) != null)
+                    Dispatcher.Invoke(() => ProcessLiveEntry(entry));
+                }
+
+                // initialize position at EOF
+                long lastMaxOffset = reader.BaseStream.Length;
+
+                while (true)
+                {
+                    System.Threading.Thread.Sleep(100);
+
+                    //if the file size has not changed, idle
+                    if (reader.BaseStream.Length == lastMaxOffset)
                     {
-                        Dispatcher.Invoke(() => ProcessLiveEntry(entry));
+                        continue;
                     }
 
-                    // seek to the last max offset
-                    long lastMaxOffset = reader.BaseStream.Length;
-                    reader.BaseStream.Seek(lastMaxOffset, SeekOrigin.Begin);
-
-                    while (true)
+                    //read out of the file until the EOF
+                    string line = "";
+                    while ((line = reader.ReadLine()) != null)
                     {
-                        System.Threading.Thread.Sleep(100);
-
-                        //if the file size has not changed, idle
-                        if (reader.BaseStream.Length == lastMaxOffset)
-                            continue;
-
-                        //read out of the file until the EOF
-                        string line = "";
-                        while ((line = reader.ReadLine()) != null)
-                        {
-                            // a new event came in
-                            Dispatcher.Invoke(() => ProcessLiveEntry(line));
-                        }
-
-                        //update the last max offset
-                        lastMaxOffset = reader.BaseStream.Position;
+                        // a new event came in
+                        Dispatcher.Invoke(() => ProcessLiveEntry(line));
                     }
+
+                    //update the last max offset
+                    lastMaxOffset = reader.BaseStream.Position;
                 }
             });
         }
@@ -157,19 +157,16 @@ namespace EDOverlay
             string eventName = eventJson.GetProperty("event").GetString();
 
             // Update EDSM, if useful
-            if (_isEdsmApiReady && !_edsmProvider.DiscardedEvents.Contains(eventName))
-                await _edsmProvider.PostEventIfUseful(journalEntry, 
-                    new EdsmApiProvider.TransientState() { 
-                        _shipId = _shipId, 
-                        _systemAddress = _systemAddress, 
-                        _systemName = _systemName, 
-                        _systemCoordinates = _systemCoordinates });
+            if (IsEdsmApiReady && !EdsmProvider.DiscardedEvents.Contains(eventName))
+            {
+                await EdsmProvider.PostEventIfUseful(journalEntry, new EdsmApiProvider.TransientState(ShipId, SystemName, SystemAddress, SystemCoordinates));
+            }
 
             // Jumping to new system
             if (eventName == "StartJump" && journalEntry.Contains("Hyperspace"))
             {
-                _systemName = eventJson.GetProperty("StarSystem").GetString();
-                var starClass = eventJson.GetProperty("StarClass").GetString();  
+                SystemName = eventJson.GetProperty("StarSystem").GetString();
+                var starClass = eventJson.GetProperty("StarClass").GetString();
                 SystemPoiList.Clear();
 
                 string upcomingStar;
@@ -179,7 +176,7 @@ namespace EDOverlay
                 else
                     upcomingStar = $"a class {starClass} star...";
 
-                TrafficText = $"Standby for system {_systemName}\n" + upcomingStar;
+                TrafficText = $"Standby for system {SystemName}\n" + upcomingStar;
             }
 
             // Jumped to new system
@@ -187,25 +184,27 @@ namespace EDOverlay
             {
                 TotalBodies.Text = "Awaiting Scan";
 
-                _systemName = eventJson.GetProperty("StarSystem").GetString();
-                _systemAddress = eventJson.GetProperty("SystemAddress").GetInt64();
-                _systemCoordinates = eventJson.GetProperty("StarPos").EnumerateArray()
+                SystemName = eventJson.GetProperty("StarSystem").GetString();
+                SystemAddress = eventJson.GetProperty("SystemAddress").GetInt64();
+                SystemCoordinates = eventJson.GetProperty("StarPos").EnumerateArray()
                     .Select(coords => coords.GetSingle()).ToArray();
 
                 SystemPoiList.Clear();
+                CurrentSystemText = SystemName;
 
-                // TODO: refactor with dependency prop
-                CurrentSystem.Text = _systemName;                
-
-                if (_isEdsmApiReady)
+                if (IsEdsmApiReady)
                 {
                     await Task.Delay(1000); // wait a second to let EDSM be updated
-                    var systemTraffic = await _edsmProvider.GetSystemTrafficAsync(_systemName);
+                    var systemTraffic = await EdsmProvider.GetSystemTrafficAsync(SystemName);
                     if (systemTraffic == null || systemTraffic.id == 0)
+                    {
                         TrafficText = "EDSM had no data";
+                    }
                     else
+                    {
                         TrafficText = $"Discovered by CMDR {systemTraffic?.discovery?.commander} on {systemTraffic?.discovery?.date}" +
                             $"\nTotal Traffic: {systemTraffic.traffic.total} ships ({systemTraffic.traffic.week} this week)";
+                    }
                 }
             }
 
@@ -244,14 +243,15 @@ namespace EDOverlay
                 var scannedBody = SystemPoiList.FirstOrDefault(poi => poi.BodyID == scannedBodyId);
 
                 if (scannedBody != null)
+                {
                     scannedBody.SurfaceScanned = true;
+                }
             }
 
             // FSD Target to calculate remaining jumps
             else if (eventName == "FSDTarget")
             {
-                int _jumpsRemaining = eventJson.GetProperty("RemainingJumpsInRoute").GetInt32();
-                RemainingJumps.Text = _jumpsRemaining.ToString();
+                RemainingJumps.Text = eventJson.GetProperty("RemainingJumpsInRoute").GetInt32().ToString();
             }
 
             // Destination Reached
@@ -263,27 +263,36 @@ namespace EDOverlay
             }
 
             // set the shipID
-            else if (new []{"SetUserShipName", "ShipyardSwap", "Loadout", "LoadGame"}.Contains(eventName))
+            else if (new[] { "SetUserShipName", "ShipyardSwap", "Loadout", "LoadGame" }.Contains(eventName))
             {
-                _shipName = eventJson.GetProperty("ShipName").GetString();
-                _shipId = eventJson.GetProperty("ShipID").GetInt32();
-                if (eventJson.TryGetProperty("Commander", out JsonElement element)) _cmdrName = element.GetString();
+                ShipName = eventJson.GetProperty("ShipName").GetString();
+                ShipId = eventJson.GetProperty("ShipID").GetInt32();
+                if (eventJson.TryGetProperty("Commander", out JsonElement element))
+                {
+                    CmdrName = element.GetString();
+                }
             }
 
             // location info
             else if (eventName == "Location")
             {
-                _systemName = eventJson.GetProperty("StarSystem").GetString();
-                _systemAddress = eventJson.GetProperty("SystemAddress").GetInt64();
-                _systemCoordinates = eventJson.GetProperty("StarPos").EnumerateArray()
+                SystemName = eventJson.GetProperty("StarSystem").GetString();
+                SystemAddress = eventJson.GetProperty("SystemAddress").GetInt64();
+                SystemCoordinates = eventJson.GetProperty("StarPos").EnumerateArray()
                     .Select(coords => coords.GetSingle()).ToArray();
+
+                CurrentSystemText = SystemName;
             }
 
             // ED closed
             else if (eventName == "Shutdown")
+            {
                 Application.Current.Shutdown();
+            }
             else
-                CurrentEventText.Text = $"Address: {_systemAddress} ShipID: {_shipId} - {_shipName} Cmdr: {_cmdrName} \n {journalEntry}";
+            {
+                CurrentEventText.Text = $"Currently In: {SystemName} \nShip: {ShipName} Cmdr: {CmdrName} \n{journalEntry}";
+            }
         }
 
         private void ProcessScannedBody(string journalEntry)
@@ -294,14 +303,17 @@ namespace EDOverlay
             float distance = eventJson.GetProperty("DistanceFromArrivalLS").GetSingle();
             PlanetClass bodyClass = PlanetClass.Icy;
 
-            string bodyName = eventJson.GetProperty("BodyName").GetString()?.Replace(_systemName ?? "NOSYSTEM", string.Empty);
+            string bodyName = eventJson.GetProperty("BodyName").GetString()?.Replace(SystemName ?? "NOSYSTEM", string.Empty);
             if (eventJson.TryGetProperty("PlanetClass", out JsonElement jsonPlanetClass))
+            {
                 bodyClass = MapPlanetClass(jsonPlanetClass.GetString());
+            }
 
             bool isTerraformable = false;
             if (eventJson.TryGetProperty("TerraformState", out JsonElement terraformOptional))
+            {
                 isTerraformable = terraformOptional.GetString() == "Terraformable";
-            
+            }
 
             if (isTerraformable || bodyClass == PlanetClass.EarthLike || bodyClass == PlanetClass.AmmoniaWorld || bodyClass == PlanetClass.WaterWorld)
             {
@@ -338,17 +350,19 @@ namespace EDOverlay
             {
                 string element = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(material.Name);
                 string bodyName = json.RootElement.GetProperty("BodyName").GetString();
-                AddAbbreviation(element);
 
-                if (!_highestConcentrations.ContainsKey(element))
+                if (!HighestConcentrations.ContainsKey(element))
                 {
-                    _highestConcentrations.Add(element, new HighestConcentationLocation(_abbreviation, decimal.Round(material.Percent, 2), bodyName));
+                    HighestConcentrations.Add(element, new HighestConcentationLocation(decimal.Round(material.Percent, 2), bodyName));
                 }
-                else if (material.Percent > _highestConcentrations[element].Percent)
+                else if (material.Percent > HighestConcentrations[element].Percent)
                 {
-                    _highestConcentrations[element] = new HighestConcentationLocation(_abbreviation, decimal.Round(material.Percent, 2), bodyName);
+                    HighestConcentrations[element] = new HighestConcentationLocation(decimal.Round(material.Percent, 2), bodyName);
                     newFindings.Add($"High contentration ({material.Name}): {material.Percent}");
-                    if (!isSilent) PlayNewHighConcentationFound();
+                    if (!isSilent)
+                    {
+                        PlayNewHighConcentationFound();
+                    }
                 }
             }
 
@@ -389,84 +403,29 @@ namespace EDOverlay
             switch (planetClass)
             {
                 case PlanetClass.AmmoniaWorld:
-                    _player.Open(new Uri($"{Environment.CurrentDirectory}/sounds/terraform.wav"));
+                    Player.Open(new Uri($"{Environment.CurrentDirectory}/sounds/terraform.wav"));
                     break;
                 case PlanetClass.WaterWorld:
-                    _player.Open(new Uri($"{Environment.CurrentDirectory}/sounds/terraform.wav"));
+                    Player.Open(new Uri($"{Environment.CurrentDirectory}/sounds/terraform.wav"));
                     break;
                 case PlanetClass.EarthLike:
-                    _player.Open(new Uri($"{Environment.CurrentDirectory}/sounds/terraform.wav"));
+                    Player.Open(new Uri($"{Environment.CurrentDirectory}/sounds/terraform.wav"));
                     break;
                 default:
-                    _player.Open(new Uri($"{Environment.CurrentDirectory}/sounds/terraform.wav"));
+                    Player.Open(new Uri($"{Environment.CurrentDirectory}/sounds/terraform.wav"));
                     break;
             }
 
-            _player.Play();
+            Player.Play();
         }
 
         private void PlayNewHighConcentationFound()
         {
-            _player.Open(new Uri($"{Environment.CurrentDirectory}/sounds/256543__debsound__r2d2-astro-droid.wav"));
-            _player.Play();
+            Player.Open(new Uri($"{Environment.CurrentDirectory}/sounds/256543__debsound__r2d2-astro-droid.wav"));
+            Player.Play();
         }
 
-        private void AddAbbreviation(string material)
-        {
-
-            if (material == "Carbon")
-                _abbreviation = "(C)";
-            if (material == "Iron")
-                _abbreviation = "(Fe)";
-            if (material == "Nickel")
-                _abbreviation = "(Ni)";
-            if (material == "Phosphorus")
-                _abbreviation = "(P)";
-            if (material == "Sulphur")
-                _abbreviation = "(S)";
-            if (material == "Arsenic")
-                _abbreviation = "(As)";
-            if (material == "Chromium")
-                _abbreviation = "(Cr)";
-            if (material == "Germanium")
-                _abbreviation = "(Ge)";
-            if (material == "Manganese")
-                _abbreviation = "(Mn)";
-            if (material == "Vanadium")
-                _abbreviation = "(V)";
-            if (material == "Zinc")
-                _abbreviation = "(Zn)";
-            if (material == "Zirconium")
-                _abbreviation = "(Zr)";
-            if (material == "Cadmium")
-                _abbreviation = "(Cd)";
-            if (material == "Mercury")
-                _abbreviation = "(Hg)";
-            if (material == "Molybdenum")
-                _abbreviation = "(Mo)";
-            if (material == "Niobium")
-                _abbreviation = "(Nb)";
-            if (material == "Tin")
-                _abbreviation = "(Sn)";
-            if (material == "Tungsten")
-                _abbreviation = "(W)";
-            if (material == "Antimony")
-                _abbreviation = "(Sb)";
-            if (material == "Polonium")
-                _abbreviation = "(Po)";
-            if (material == "Ruthenium")
-                _abbreviation = "(Ru)";
-            if (material == "Selenium")
-                _abbreviation = "(Se)";
-            if (material == "Technetium")
-                _abbreviation = "(Tc)";
-            if (material == "Tellurium")
-                _abbreviation = "(Te)";
-            if (material == "Yttrium")
-                _abbreviation = "(Y)";
-        }
-
-        private PlanetClass MapPlanetClass(string edPlanetClass)
+        private static PlanetClass MapPlanetClass(string edPlanetClass)
         {
             return edPlanetClass switch
             {
@@ -483,33 +442,34 @@ namespace EDOverlay
             };
         }
 
-        public Dictionary<string, Rarity> MaterialRarity = new Dictionary<string, Rarity>
+        public record MaterialInfo(string Abbreviation, Rarity Rarity);
+        public readonly static Dictionary<string, MaterialInfo> MaterialLookup = new Dictionary<string, MaterialInfo>
         {
-            {"Carbon", Rarity.VeryCommon },
-            {"Iron", Rarity.VeryCommon },
-            {"Nickel", Rarity.VeryCommon },
-            {"Phosphorus", Rarity.VeryCommon },
-            {"Sulphur", Rarity.VeryCommon },
-            {"Arsenic", Rarity.Common },
-            {"Chromium", Rarity.Common },
-            {"Germanium", Rarity.Common },
-            {"Manganese", Rarity.Common },
-            {"Vanadium", Rarity.Common },
-            {"Zinc", Rarity.Common },
-            {"Zirconium", Rarity.Common },
-            {"Cadmium", Rarity.Uncommon },
-            {"Mercury", Rarity.Uncommon },
-            {"Molybdenum", Rarity.Uncommon },
-            {"Niobium", Rarity.Uncommon },
-            {"Tin", Rarity.Uncommon },
-            {"Tungsten", Rarity.Uncommon },
-            {"Antimony", Rarity.Rare },
-            {"Polonium", Rarity.Rare },
-            {"Ruthenium", Rarity.Rare },
-            {"Selenium", Rarity.Rare },
-            {"Technetium", Rarity.Rare },
-            {"Tellurium", Rarity.Rare },
-            {"Yttrium", Rarity.Rare }
+            {"Carbon", new MaterialInfo("C", Rarity.VeryCommon) },
+            {"Iron", new MaterialInfo("Fe", Rarity.VeryCommon) },
+            {"Nickel", new MaterialInfo("Ni", Rarity.VeryCommon) },
+            {"Phosphorus", new MaterialInfo("P", Rarity.VeryCommon) },
+            {"Sulphur", new MaterialInfo("S", Rarity.VeryCommon) },
+            {"Arsenic", new MaterialInfo("As", Rarity.Common) },
+            {"Chromium", new MaterialInfo("Cr", Rarity.Common) },
+            {"Germanium", new MaterialInfo("Ge", Rarity.Common) },
+            {"Manganese", new MaterialInfo("Mn", Rarity.Common) },
+            {"Vanadium", new MaterialInfo("V", Rarity.Common) },
+            {"Zinc", new MaterialInfo("Zn", Rarity.Common) },
+            {"Zirconium", new MaterialInfo("Zr", Rarity.Common) },
+            {"Cadmium", new MaterialInfo("Cd", Rarity.Uncommon) },
+            {"Mercury", new MaterialInfo("Hg", Rarity.Uncommon) },
+            {"Molybdenum", new MaterialInfo("Mo", Rarity.Uncommon) },
+            {"Niobium", new MaterialInfo("Nb", Rarity.Uncommon) },
+            {"Tin", new MaterialInfo("Sn", Rarity.Uncommon) },
+            {"Tungsten", new MaterialInfo("W", Rarity.Uncommon) },
+            {"Antimony", new MaterialInfo("Sb", Rarity.Rare) },
+            {"Polonium", new MaterialInfo("Po", Rarity.Rare) },
+            {"Ruthenium", new MaterialInfo("Ru", Rarity.Rare) },
+            {"Selenium", new MaterialInfo("Se", Rarity.Rare) },
+            {"Technetium", new MaterialInfo("Tc", Rarity.Rare) },
+            {"Tellurium", new MaterialInfo("Te", Rarity.Rare) },
+            {"Yttrium", new MaterialInfo("Y", Rarity.Rare) }
         };
 
         #region "For future use"
@@ -556,11 +516,21 @@ namespace EDOverlay
         private string _trafficText = "Awaiting new system";
         public string TrafficText
         {
-            get { return _trafficText; }
+            get => _trafficText;
 
             set
             {
                 _trafficText = value;
+                NotifyPropertyChanged();
+            }
+        }
+
+        public string CurrentSystemText
+        {
+            get => SystemName;
+            set
+            {
+                SystemName = value;
                 NotifyPropertyChanged();
             }
         }
@@ -577,14 +547,12 @@ namespace EDOverlay
     public class MaterialConcentration
     {
         public string Name { get; set; }
-
         public decimal Percent { get; set; }
     }
 
     public class HighestConcentationLocation
     {
-        public HighestConcentationLocation(string abbreviation, decimal percent, string body) { Abbreviation = abbreviation; Percent = percent; BodyName = body; }
-        public string Abbreviation { get; set; }
+        public HighestConcentationLocation(decimal percent, string body) { Percent = percent; BodyName = body; }
         public decimal Percent { get; set; }
         public string BodyName { get; set; }
     }
@@ -600,7 +568,7 @@ namespace EDOverlay
         private bool _surfaceScanned;
         public bool SurfaceScanned
         {
-            get { return _surfaceScanned; }
+            get => _surfaceScanned;
 
             set
             {
@@ -652,15 +620,17 @@ namespace EDOverlay
     [ValueConversion(typeof(ObservableCollection<string>), typeof(string))]
     public class ListToStringConverter : BaseConverter, IValueConverter
     {
-        public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
             if (targetType != typeof(string))
+            {
                 throw new InvalidOperationException("The target must be a String");
+            }
 
             return String.Join(Environment.NewLine, ((ObservableCollection<string>)value).ToArray());
         }
 
-        public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
             throw new NotImplementedException();
         }
@@ -669,12 +639,26 @@ namespace EDOverlay
     [ValueConversion(typeof(bool), typeof(string))]
     public class BoolToMappedConverter : IValueConverter
     {
-        public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
             return (bool)value ? "mapped" : "not mapped";
         }
 
-        public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    [ValueConversion(typeof(string), typeof(string))]
+    public class ElementAbbreviationConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            return string.Format($"({MainWindow.MaterialLookup[(string)value].Abbreviation})");
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
             throw new NotImplementedException();
         }
