@@ -46,11 +46,11 @@
 
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Width="Auto">
                 <TextBlock Text="Currently In: " Margin="5 0 0 0" Foreground="White" FontWeight="DemiBold" />
-                <TextBlock x:Name="CurrentSystemTextBox" Height="auto" Width="Auto" Margin="5 0 0 0" Foreground="White" FontWeight="DemiBold" Text="{Binding CurrentSystemText, NotifyOnTargetUpdated=True}" MouseLeftButtonDown="CopySystem_Click" />
+                <TextBlock x:Name="CurrentSystemTextBox" Height="auto" Width="Auto" Margin="5 0 0 0" Foreground="White" FontWeight="DemiBold" Text="{Binding CurrentSystemText, NotifyOnTargetUpdated=True}" MouseLeftButtonDown="CopySystem_Click" d:Text="SomeSystem" />
             </StackPanel>            
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Width="Auto">
                 <TextBlock Text="Jumps Remaining in Route:" Margin="5 0 0 0" Foreground="Magenta" FontWeight="DemiBold" />
-                <TextBlock x:Name="RemainingJumps" Height="auto" Width="Auto" Margin="5 0 0 0" Foreground="Magenta" FontWeight="DemiBold" Text="{Binding _jumpsRemaining}" />
+                <TextBlock x:Name="RemainingJumps" Height="auto" Width="Auto" Margin="5 0 0 0" Foreground="Magenta" FontWeight="DemiBold" Text="{Binding _jumpsRemaining}" d:Text="5" />
             </StackPanel>
 
             <Expander Name="materialExpander" Background="Transparent" HorizontalAlignment="Left" Header="Materials" Foreground="#FFF6FF35" ExpandDirection="Down" IsExpanded="True" Template="{StaticResource Template1}">
@@ -64,7 +64,7 @@
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal" Width="auto">
                                 <TextBlock Width="25" FontWeight="Bold" FontSize="10" Foreground="#FFF6FF35">
-                                    <TextBlock.Text>
+                                    <TextBlock.Text d:Text="Carbon">
                                         <Binding Path="Key" Converter="{StaticResource ElementAbbreviationConverter}" />
                                     </TextBlock.Text>
                                 </TextBlock>
@@ -88,8 +88,8 @@
                                         </EventTrigger>
                                     </TextBlock.Triggers>-->
                                 </TextBlock>
-                                <TextBlock Text="{Binding Value.Percent, Mode=TwoWay}"  Width="40" FontWeight="Bold" Foreground="#FF51C5FB" />
-                                <TextBlock Text="{Binding Value.BodyName, Mode=TwoWay}" FontWeight="Bold" Foreground="#FFBB721A" MouseRightButtonDown="CopySystem_Click"/>
+                                <TextBlock Text="{Binding Value.Percent, Mode=TwoWay}"  Width="40" FontWeight="Bold" Foreground="#FF51C5FB" d:Text="SystemName" />
+                                <TextBlock Text="{Binding Value.BodyName, Mode=TwoWay}" FontWeight="Bold" Foreground="#FFBB721A" d:Text="System" MouseRightButtonDown="CopySystem_Click"/>
                             </StackPanel>
                         </DataTemplate>
                     </ListView.ItemTemplate>
