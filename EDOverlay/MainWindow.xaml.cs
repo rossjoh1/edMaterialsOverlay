@@ -152,9 +152,28 @@ namespace EDOverlay
 
         private async void ProcessLiveEntry(string journalEntry)
         {
+            JsonDocument jsonDoc;
+            try
+            {
+                jsonDoc = JsonDocument.Parse(journalEntry);
+            }
+            catch
+            {
+                // The log line wasn't valid JSON; just return or handle it
+                return;
+            }
+
             // what event is this?
-            JsonElement eventJson = JsonDocument.Parse(journalEntry).RootElement;
-            string eventName = eventJson.GetProperty("event").GetString();
+            JsonElement eventJson = jsonDoc.RootElement;
+
+            // Safely check for "event" key:
+            if (!eventJson.TryGetProperty("event", out JsonElement eventElement))
+            {
+                // If there's no "event" property, just return (or handle it however you prefer)
+                return;
+            }
+
+            string eventName = eventElement.GetString();
 
             // Update EDSM, if useful
             if (IsEdsmApiReady && !EdsmProvider.DiscardedEvents.Contains(eventName))
@@ -251,7 +270,8 @@ namespace EDOverlay
             // FSD Target to calculate remaining jumps
             else if (eventName == "FSDTarget")
             {
-                RemainingJumps.Text = eventJson.GetProperty("RemainingJumpsInRoute").GetInt32().ToString();
+                if (journalEntry.Contains("RemainingJumpsInRoute"))
+                    RemainingJumps.Text = eventJson.GetProperty("RemainingJumpsInRoute").GetInt32().ToString();
             }
 
             // Destination Reached
@@ -263,13 +283,26 @@ namespace EDOverlay
             }
 
             // set the shipID
-            else if (new[] { "SetUserShipName", "ShipyardSwap", "Loadout", "LoadGame" }.Contains(eventName))
+            // else if (new[] { "SetUserShipName", "ShipyardSwap", "Loadout", "LoadGame" }.Contains(eventName))
+            // Removed "ShipyardSwap" because it does not output ShipName anymore. "Loadout" automatically logs after the swap and decalres ShipName and ShipID.
+            else if (new[] { "SetUserShipName", "Loadout", "LoadGame" }.Contains(eventName))
             {
-                ShipName = eventJson.GetProperty("ShipName").GetString();
-                ShipId = eventJson.GetProperty("ShipID").GetInt32();
-                if (eventJson.TryGetProperty("Commander", out JsonElement element))
+                // ShipName
+                if (eventJson.TryGetProperty("ShipName", out JsonElement shipNameElement))
                 {
-                    CmdrName = element.GetString();
+                    ShipName = shipNameElement.GetString();
+                }
+
+                // ShipID
+                if (eventJson.TryGetProperty("ShipID", out JsonElement shipIdElement))
+                {
+                    ShipId = shipIdElement.GetInt32();
+                }
+
+                // Commander
+                if (eventJson.TryGetProperty("Commander", out JsonElement commanderElement))
+                {
+                    CmdrName = commanderElement.GetString();
                 }
             }
 
@@ -386,6 +419,7 @@ namespace EDOverlay
         {
             if (Application.Current.Windows.OfType<OptionsWindow>().FirstOrDefault() == null)
             {
+                
                 OptionsWindow options = new OptionsWindow();
                 options.Show();
             }

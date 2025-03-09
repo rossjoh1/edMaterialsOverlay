@@ -26,7 +26,7 @@
     <UseWPF>true</UseWPF>
   </PropertyGroup>
   <PropertyGroup>
-    <PublishTrimmed>true</PublishTrimmed>
+    <PublishTrimmed>false</PublishTrimmed>
   </PropertyGroup>
   <PropertyGroup>
     <ManifestCertificateThumbprint>862F2BE3AC1801098C9771192985834A2725E32D</ManifestCertificateThumbprint>
